@@ -1,4 +1,5 @@
 import kivy
+from kivy.event import EventDispatcher
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
@@ -41,16 +42,16 @@ class KioskHeader(BoxLayout):
         self.rect.pos = self.pos
         self.rect.size = self.size
 
-class OptionCard(Button):
-    icon_char = StringProperty('') # Using char code as Kivy Label needs a font that supports it
+class OptionCard(BoxLayout):
+    icon_char = StringProperty('') 
     title_text = StringProperty('')
     description_text = StringProperty('')
+    
+    __events__ = ('on_release',)  # Registra o evento personalizado
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.background_normal = '' # No default background image
-        self.background_color = (0,0,0,0) # Make button itself transparent for custom drawing
-        self.color = (0.2, 0.2, 0.2, 1) # Dark text
+        self.orientation = 'vertical'  # Mudança para vertical temporariamente
         self.size_hint_y = None
         self.height = dp(150)
         self.padding = dp(20)
@@ -67,64 +68,37 @@ class OptionCard(Button):
             self.card_rect = RoundedRectangle(size=self.size, pos=self.pos, radius=self.border_radius)
         self.bind(pos=self._update_canvas, size=self._update_canvas)
 
-        # Initialize Labels
+        # Labels com ícones FontAwesome corretos
         self.icon_label = Label(
             text=self.icon_char,
-            font_size='50sp',
+            font_name='FontAwesome',  # Usa a fonte FontAwesome registrada
+            font_size='40sp',
             color=(0/255, 77/255, 122/255, 1),
-            markup=True,
-            size_hint_x=None,
-            width=dp(80),
-            halign='center',
-            valign='middle'
+            size_hint_y=None,
+            height=dp(50)
         )
         
         self.title_label = Label(
             text=f'[b]{self.title_text}[/b]',
             markup=True,
-            font_size='22sp',
+            font_size='18sp',
             color=(0.2, 0.2, 0.2, 1),
-            halign='left',
-            valign='middle',
             size_hint_y=None,
-            height=dp(40)
+            height=dp(30)
         )
         
         self.description_label = Label(
             text=self.description_text,
-            markup=True,
-            font_size='14sp',
+            font_size='12sp',
             color=(0.4, 0.4, 0.4, 1),
-            halign='left',
-            valign='middle',
             size_hint_y=None,
-            height=dp(60)
+            height=dp(40)
         )
 
-        # Layout principal horizontal
-        content_layout = BoxLayout(
-            orientation='horizontal',
-            padding=dp(10),
-            spacing=dp(10)
-        )
-        
-        # Layout vertical para título e descrição
-        text_layout = BoxLayout(
-            orientation='vertical',
-            spacing=dp(5)
-        )
-        
-        # Adiciona os widgets aos layouts
-        text_layout.add_widget(self.title_label)
-        text_layout.add_widget(self.description_label)
-        
-        content_layout.add_widget(self.icon_label)
-        content_layout.add_widget(text_layout)
-
-        self.add_widget(content_layout)
-
-        # Bind size changes to update description_label and title_label text_size for proper wrapping
-        self.bind(size=self._update_text_size)
+        # Layout vertical simples
+        self.add_widget(self.icon_label)
+        self.add_widget(self.title_label) 
+        self.add_widget(self.description_label)
 
         # Bind property changes to update label texts
         self.bind(icon_char=self._update_icon_text)
@@ -141,45 +115,40 @@ class OptionCard(Button):
         self.description_label.text = value
 
     def _update_text_size(self, instance, value):
-        # Encontra o layout de texto (parent do title_label)
-        text_layout = self.title_label.parent
-        if not text_layout:
-            return
-
-        # Calcula largura disponível
-        padding = text_layout.padding if hasattr(text_layout, 'padding') else [0, 0, 0, 0]
-        available_width = text_layout.width - (padding[0] + padding[2])
-        
-        # Define text_size para permitir quebra de linha horizontal
-        if available_width > 0:
-            self.title_label.text_size = (available_width, None)
-            self.description_label.text_size = (available_width, None)
-            
-            # Debug info
-            print(f"DEBUG: Text layout width: {text_layout.width}")
-            print(f"DEBUG: Available width for text: {available_width}")
-            print(f"DEBUG: Title text size: {self.title_label.text_size}")
-            print(f"DEBUG: Description text size: {self.description_label.text_size}")
+        """Método simplificado - os binds automáticos cuidam do text_size"""
+        # Os binds nos labels já cuidam da atualização do text_size
+        # Este método pode ser usado para ajustes específicos se necessário
+        pass
 
     def _update_canvas(self, instance, value):
         # Update positions and sizes of the custom drawn rectangles
-        
         self.shadow_rect.pos = (self.x + dp(5), self.y + dp(5))
         self.shadow_rect.size = (self.width - dp(10), self.height - dp(10))
         self.card_rect.pos = self.pos
         self.card_rect.size = self.size
 
-    # Handle hover/press effects
-    def on_enter(self): # Kivy doesn't have direct hover, usually relies on touch/mouse events
-        pass # For mouse, you'd bind to Window.bind(mouse_pos)
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            self.card_color = (1, 221/255, 51/255, 1) # Lighter yellow on press
+            self._update_canvas(self, None)
+            return True
+        return super().on_touch_down(touch)
 
-    def on_press(self):
-        self.card_color = (1, 221/255, 51/255, 1) # Lighter yellow on press
-        self._update_canvas(self, None)
+    def on_touch_up(self, touch):
+        if self.collide_point(*touch.pos):
+            self.card_color = (1, 204/255, 0, 1) # Back to original color
+            self._update_canvas(self, None)
+            # Trigger any bound events
+            self.dispatch('on_release')
+        return super().on_touch_up(touch)
 
     def on_release(self):
-        self.card_color = (1, 204/255, 0, 1) # Back to original color
-        self._update_canvas(self, None)
+        # Event that can be bound to
+        pass
+
+    # Bind this event for compatibility with button-like behavior
+    def bind_release(self, callback):
+        self.bind(on_release=callback)
 
 
 class KioskFooter(BoxLayout):
@@ -226,19 +195,33 @@ class KioskHomeScreen(BoxLayout):
 
         self.add_widget(KioskHeader())
 
-        self.add_widget(BoxLayout(size_hint_y=None, height=dp(80)))  # Spacer between header and welcome label
+        # Espaçador menor entre header e welcome
+        self.add_widget(BoxLayout(size_hint_y=None, height=dp(30)))  
 
-        main_content = BoxLayout(orientation='vertical', padding=[dp(40), dp(20), dp(40), dp(40)], spacing=dp(50))
-        welcome_label = Label(text='[b]Welcome! How can we help you?[/b]', markup=True, font_size='30sp', color=(0/255, 77/255, 122/255, 1), size_hint_y=None, height=dp(80), halign='center', valign='middle')
+        # Label de boas-vindas centralizado
+        welcome_label = Label(
+            text='[b]Welcome! How can we help you?[/b]', 
+            markup=True, 
+            font_size='32sp', 
+            color=(0/255, 77/255, 122/255, 1), 
+            size_hint_y=None, 
+            height=dp(60), 
+            halign='center', 
+            valign='middle'
+        )
         welcome_label.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
-        main_content.add_widget(welcome_label)
+        self.add_widget(welcome_label)
 
-        main_content.add_widget(BoxLayout(size_hint_y=None, height=dp(40)))  # Spacer between welcome label and boxes
+        # Espaçador entre welcome e cartões
+        self.add_widget(BoxLayout(size_hint_y=None, height=dp(40)))
 
+        # Container para os cartões com padding
+        main_content = BoxLayout(orientation='vertical', padding=[dp(40), dp(0), dp(40), dp(40)])
+        
         options_grid = GridLayout(cols=2, spacing=dp(30), size_hint_y=None, height=dp(200))
         
         find_lockers_btn = OptionCard(
-            icon_char='\uf002',  # FontAwesome search icon
+            icon_char='\uf002',  # FontAwesome search icon (fa-search)
             title_text='Find available lockers',
             description_text='Book a new locker for your bags.'
         )
@@ -246,16 +229,18 @@ class KioskHomeScreen(BoxLayout):
         options_grid.add_widget(find_lockers_btn)
 
         unlock_locker_btn = OptionCard(
-            icon_char='\uf09c',  # FontAwesome unlock icon
+            icon_char='\uf09c',  # FontAwesome unlock icon (fa-unlock)
             title_text='Unlock locker',
             description_text='Access your booked locker.'
         )
         unlock_locker_btn.bind(on_release=self.go_to_unlock_locker)
         options_grid.add_widget(unlock_locker_btn)
         
-
+        # Adiciona os cartões ao container principal
         main_content.add_widget(options_grid)
-        main_content.add_widget(BoxLayout(size_hint_y=None, height=dp(50))) # Um es# Spacer to push grid up
+        
+        # Espaçador final
+        main_content.add_widget(BoxLayout())  # Spacer flexível
 
         self.add_widget(main_content)
         self.add_widget(KioskFooter())
