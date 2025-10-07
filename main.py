@@ -12,14 +12,30 @@ from kivy.uix.gridlayout import GridLayout  # Import GridLayout for options layo
 # Import your screen definitions
 from homescreen import KioskHomeScreen, OptionCard  # Import OptionCard here
 from lockerscreens import FindLockersScreen, UnlockLockerScreen
+from contact_pin_screen import ContactPinScreen  # Import the new screen
+
+from kivy.uix.button import Button
+from kivy.uix.textinput import TextInput
+
 LabelBase.register(name="FontAwesome", fn_regular="fa-solid-900.ttf.otf")
 # Optional: Set window size for desktop testing. Comment out for actual Pi full screen.
 # Window.size = (800, 600)
 # Window.fullscreen = 'auto' # Uncomment this for full screen on Pi
 
+# Ensure LockerAccessScreen is defined before using it
+# from locker_access_screen import LockerAccessScreen
+
+class MainScreen(Screen):
+    def __init__(self, **kwargs):
+        super(MainScreen, self).__init__(**kwargs)
+        # Initialize your widgets and layout here
+        # Example: self.add_widget(Label(text='Welcome to the Main Screen'))
+
 class MainScreenManager(ScreenManager):
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super(MainScreenManager, self).__init__(**kwargs)
+        self.add_widget(MainScreen(name='main'))
+        self.add_widget(LockerAccessScreen(name='locker_access'))
 
         # Definir as propriedades title_text e description_text
         self.title_text = "Default Title"  # Substitua pelo valor desejado
@@ -63,6 +79,12 @@ class MainScreenManager(ScreenManager):
         # Adicionar o Screen ao ScreenManager
         self.add_widget(options_screen)
 
+        # Adicionando a nova tela ao gerenciador de telas
+        self.add_widget(ContactPinScreen(name='contact_pin'))  # Add the contact pin screen
+        
+        # Definir a tela inicial
+        self.current = 'home'
+
     def _update_icon_text(self, instance, value):
         self.icon_label.text = value
 
@@ -71,6 +93,31 @@ class MainScreenManager(ScreenManager):
 
     def _update_description_text(self, instance, value):
         self.description_label.text = value
+
+class LockerAccessScreen(Screen):
+    def __init__(self, **kwargs):
+        super(LockerAccessScreen, self).__init__(**kwargs)
+        layout = BoxLayout(orientation='vertical')
+
+        self.contact_input = TextInput(hint_text='Insira seu contato')
+        self.pin_input = TextInput(hint_text='Insira seu PIN de 4 dígitos', password=True, multiline=False)
+        self.open_locker_button = Button(text='Abrir Cacifo')
+
+        layout.add_widget(self.contact_input)
+        layout.add_widget(self.pin_input)
+        layout.add_widget(self.open_locker_button)
+
+        self.open_locker_button.bind(on_press=self.open_locker)
+
+        self.add_widget(layout)
+
+    def open_locker(self, instance):
+        contact = self.contact_input.text
+        pin = self.pin_input.text
+        # Aqui você pode adicionar a lógica para abrir o cacifo usando o contato e o PIN
+        print(f'Abrindo cacifo para {contact} com PIN {pin}')  
+        # Voltar para a tela inicial ou outra lógica
+        self.manager.current = 'home'
 
 class LuggageKioskApp(App):
     def build(self):
