@@ -1,0 +1,18 @@
+# Dependências principais
+kivy>=2.3.0
+kivymd>=1.1.0  # Para Material Design (opcional)
+
+# GPIO para Raspberry Pi (só funciona no Pi)
+RPi.GPIO>=0.7.1
+
+# Bibliotecas úteis para o sistema
+schedule>=1.2.0  # Para tarefas agendadas
+psutil>=5.9.0    # Para monitorar sistema
+sqlite3  # Para banco de dados (já vem com Python)
+
+# Para comunicação (opcional)
+requests>=2.28.0  # Para APIs web
+paho-mqtt>=1.6.0  # Para comunicação MQTT
+
+# Para logging avançado (opcional)
+python-decouple>=3.6  # Para configurações
