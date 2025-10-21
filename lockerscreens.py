@@ -48,10 +48,9 @@ class LockerBox(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.orientation = 'vertical'
-        self.size_hint = (None, None)
-        self.size = (dp(120), dp(150))
-        self.padding = dp(10)
-        self.spacing = dp(5)
+        self.size_hint = (1, 1)  # Usar tamanho relativo ao container
+        self.padding = dp(15)  # Mais padding para formato quadrado
+        self.spacing = dp(8)   # Mais espaçamento interno
         
         # Colors for different states
         self.available_color = (46/255, 204/255, 64/255, 1)  # Green - available
@@ -64,29 +63,28 @@ class LockerBox(BoxLayout):
         # Locker background
         with self.canvas.before:
             Color(*self.current_color)
-            self.rect = RoundedRectangle(pos=self.pos, size=self.size, radius=[dp(8)])
+            self.rect = RoundedRectangle(pos=self.pos, size=self.size, radius=[dp(12)])
         self.bind(pos=self._update_rect, size=self._update_rect)
         self.bind(locker_status=self._update_color)
         
-        # Locker number (larger and more prominent)
+        # Locker number (responsive) - ajustado para formato quadrado
         self.number_label = Label(
             text=f'#{self.locker_number}',
-            font_size='28sp',
-            size_hint_y=None,
-            height=dp(80),
+            font_size='30sp',  # Ligeiramente maior para formato quadrado
+            size_hint_y=0.65,  # 65% da altura do locker
             color=(1, 1, 1, 1),  # White
             bold=True,
             halign='center',
             valign='middle'
         )
         
-        # Locker status
+        # Locker status (responsive) - ajustado para formato quadrado
         self.status_label = Label(
             text=self._get_status_text(),
-            font_size='14sp',
-            size_hint_y=None,
-            height=dp(40),
+            font_size='14sp',  # Ligeiramente maior para melhor legibilidade
+            size_hint_y=0.35,  # 35% da altura do locker
             color=(1, 1, 1, 1),  # White
+            bold=True,
             halign='center',
             valign='middle'
         )
@@ -129,7 +127,7 @@ class LockerBox(BoxLayout):
         self.current_color = self._get_color_for_status()
         with self.canvas.before:
             Color(*self.current_color)
-            self.rect = RoundedRectangle(pos=self.pos, size=self.size, radius=[dp(8)])
+            self.rect = RoundedRectangle(pos=self.pos, size=self.size, radius=[dp(12)])
         
         # Update status text
         self.status_label.text = self._get_status_text()
@@ -175,7 +173,7 @@ class BaseScreen(BoxLayout):
         back_button.bind(on_release=self.go_back)
         header.add_widget(back_button)
         header.add_widget(Label(text=f'[b]{title}[/b]', markup=True, font_size='22sp', color=(1,1,1,1), valign='middle', halign='center'))
-        header.add_widget(BoxLayout(size_hint_x=None, width=dp(100))) # Spacer for alignment
+        # Removed problematic spacer that was creating a yellow square
 
         self.add_widget(header)
 
@@ -208,29 +206,30 @@ class FindLockersScreen(BaseScreen):
         # Referência à base de dados
         self.db = self.gpio_controller.db if self.gpio_controller else None
         
-        # Container para centralizar o grid
+        # Container para centralizar o grid - máximo baixo possível
         grid_container = BoxLayout(
-            orientation='horizontal',
-            size_hint_y=None,
-            height=dp(320)
+            orientation='vertical',
+            size_hint_y=0.75,  # 75% da altura disponível
+            padding=[dp(60), dp(500), dp(60), dp(30)]  # Padding no topo máximo 500dp
         )
         
-        # Espaçador esquerdo
-        grid_container.add_widget(BoxLayout())
-        
-        # Grid para os cacifos (2 colunas, ajuste automático de linhas)
+        # Grid para os cacifos (2 colunas x 2 linhas) - formato mais quadrado
         lockers_grid = GridLayout(
             cols=2,
+            rows=2,
             spacing=dp(20), 
             size_hint=(None, None),
-            size=(dp(260), dp(320))
+            size=(dp(360), dp(320)),  # Tamanho fixo mais quadrado (360x320)
+            pos_hint={'center_x': 0.5, 'center_y': 0.5}  # Centralizar horizontal e verticalmente
         )
         
         # Criar cacifos (apenas os que existem)
         self.create_lockers(lockers_grid)
         
         grid_container.add_widget(lockers_grid)
-        grid_container.add_widget(BoxLayout())
+        
+        # Espaçador inicial para empurrar o grid ao máximo para baixo
+        self.content_area.add_widget(BoxLayout(size_hint_y=None, height=dp(400)))  # Espaçador máximo 400dp
         
         self.content_area.add_widget(grid_container)
         
