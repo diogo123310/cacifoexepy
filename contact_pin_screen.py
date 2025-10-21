@@ -161,42 +161,9 @@ class ContactPinScreen(Screen):
         # Espaçador
         white_area.add_widget(BoxLayout(size_hint_y=None, height=dp(30)))
         
-        # PIN section
-        self.generated_pin = f"{random.randint(1000, 9999)}"
-        
-        pin_label = Label(
-            text='Your PIN has been generated:',
-            font_size='18sp',
-            size_hint_y=None,
-            height=dp(30),
-            color=(0/255, 77/255, 122/255, 1),
-            halign='center'
-        )
-        pin_label.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
-        white_area.add_widget(pin_label)
-        
-        # Container do PIN
-        pin_container = BoxLayout(orientation='vertical', size_hint_y=None, height=dp(80), padding=dp(10))
-        with pin_container.canvas.before:
-            Color(1, 204/255, 0, 1)
-            pin_container.rect = RoundedRectangle(pos=pin_container.pos, size=pin_container.size, radius=[dp(12)])
-        pin_container.bind(pos=lambda instance, value: setattr(pin_container.rect, 'pos', pin_container.pos))
-        pin_container.bind(size=lambda instance, value: setattr(pin_container.rect, 'size', pin_container.size))
-        
-        pin_display = Label(
-            text=f'[b]{self.generated_pin}[/b]',
-            markup=True,
-            font_size='36sp',
-            color=(0/255, 77/255, 122/255, 1),
-            halign='center',
-            valign='middle'
-        )
-        pin_container.add_widget(pin_display)
-        white_area.add_widget(pin_container)
-        
         # Instrução
         instruction = Label(
-            text='Please note this PIN. You will need it to access your locker.',
+            text='Enter your contact information to proceed. A PIN will be generated for your locker.',
             font_size='16sp',
             size_hint_y=None,
             height=dp(40),
@@ -236,7 +203,6 @@ class ContactPinScreen(Screen):
             self.show_error_popup("Please enter a valid contact")
             return
             
-        pin = self.generated_pin
         selected_locker = getattr(self.manager, 'selected_locker', None)
         
         if not selected_locker:
@@ -249,34 +215,59 @@ class ContactPinScreen(Screen):
             db = self.manager.gpio_controller.db
         
         if db:
-            # Try to book the locker in the database
-            success = db.book_locker(selected_locker, contact, pin)
+            # Try to book the locker in the database - PIN será gerado automaticamente
+            success = db.book_locker(selected_locker, contact)
             
             if success and success.get('success', False):
+                # Obter PIN gerado automaticamente
+                generated_pin = success.get('pin', '0000')
+                
                 # Open the locker physically with 20ms pulse
                 if self.manager.gpio_controller:
                     unlock_success = self.manager.gpio_controller.pulse_locker_unlock(selected_locker, 0.02)
                     if unlock_success:
-                        print(f'Locker {selected_locker} opened with 20ms pulse!')
+                        print(f'Locker {selected_locker} opened with 20ms pulse! Generated PIN: {generated_pin}')
                     else:
                         print(f'Error sending pulse to locker {selected_locker}')
                 
-                # Show success popup
-                self.show_success_popup(selected_locker, contact, pin)
+                # Show success popup with generated PIN
+                self.show_success_popup(selected_locker, contact, generated_pin)
             else:
                 error_msg = success.get('message', f'Error booking locker {selected_locker}') if success else f'Error booking locker {selected_locker}'
                 self.show_error_popup(error_msg)
         else:
-            # Fallback to simulation mode
-            print(f'Simulated booking - Locker: {selected_locker}, Contact: {contact}, PIN: {pin}')
-            
-            # Simulate locker opening with pulse
-            if self.manager.gpio_controller:
-                self.manager.gpio_controller.pulse_locker_unlock(selected_locker, 0.02)
-                print(f'20ms pulse sent to locker {selected_locker} (simulation mode)')
-            
-            # Show success popup
-            self.show_success_popup(selected_locker, contact, pin)
+            # Fallback to simulation mode - usar sistema automático de PIN da database
+            if hasattr(self.manager, 'gpio_controller') and self.manager.gpio_controller and self.manager.gpio_controller.db:
+                # Usar a database mesmo em modo simulação
+                db_fallback = self.manager.gpio_controller.db
+                success = db_fallback.book_locker(selected_locker, contact)
+                if success and success.get('success', False):
+                    generated_pin = success.get('pin', '0000')
+                    print(f'Database booking in simulation - Locker: {selected_locker}, Contact: {contact}, PIN: {generated_pin}')
+                    
+                    # Simulate locker opening with pulse
+                    if self.manager.gpio_controller:
+                        self.manager.gpio_controller.pulse_locker_unlock(selected_locker, 0.02)
+                        print(f'20ms pulse sent to locker {selected_locker} (simulation mode)')
+                    
+                    # Show success popup
+                    self.show_success_popup(selected_locker, contact, generated_pin)
+                else:
+                    error_msg = success.get('message', f'Error booking locker {selected_locker}') if success else f'Error booking locker {selected_locker}'
+                    self.show_error_popup(error_msg)
+            else:
+                # Modo simulação completo sem database
+                import random
+                generated_pin = f"{random.randint(1000, 9999)}"
+                print(f'Full simulation booking - Locker: {selected_locker}, Contact: {contact}, PIN: {generated_pin}')
+                
+                # Simulate locker opening with pulse
+                if self.manager.gpio_controller:
+                    self.manager.gpio_controller.pulse_locker_unlock(selected_locker, 0.02)
+                    print(f'20ms pulse sent to locker {selected_locker} (full simulation mode)')
+                
+                # Show success popup
+                self.show_success_popup(selected_locker, contact, generated_pin)
     
     def show_success_popup(self, locker_number, contact, pin):
         """Show confirmation popup with real-time monitoring"""

@@ -218,16 +218,15 @@ class FindLockersScreen(BaseScreen):
         # Espaçador esquerdo
         grid_container.add_widget(BoxLayout())
         
-        # Grid para os cacifos (2 colunas, 2 linhas)
+        # Grid para os cacifos (2 colunas, ajuste automático de linhas)
         lockers_grid = GridLayout(
-            cols=2, 
-            rows=2,
+            cols=2,
             spacing=dp(20), 
             size_hint=(None, None),
             size=(dp(260), dp(320))
         )
         
-        # Criar cacifos
+        # Criar cacifos (apenas os que existem)
         self.create_lockers(lockers_grid)
         
         grid_container.add_widget(lockers_grid)
@@ -263,12 +262,16 @@ class FindLockersScreen(BaseScreen):
         Clock.schedule_interval(self.auto_refresh_status, 2.0)
 
     def create_lockers(self, parent_grid):
-        """Create locker widgets"""
+        """Create locker widgets - apenas os cacifos definidos no sistema"""
+        # Apenas os 4 cacifos principais do sistema
         locker_numbers = ['001', '002', '003', '004']
+        
+        print(f"Criando {len(locker_numbers)} cacifos: {locker_numbers}")
         
         for locker_number in locker_numbers:
             # Get complete locker status (available, door_open, occupied)
             locker_status = self.get_locker_status(locker_number)
+            print(f"Locker {locker_number}: {locker_status}")
             
             locker = LockerBox(locker_number=locker_number, locker_status=locker_status)
             locker.bind(on_locker_select=self.on_locker_selected)
@@ -277,6 +280,8 @@ class FindLockersScreen(BaseScreen):
             self.locker_widgets[locker_number] = locker
             
             parent_grid.add_widget(locker)
+        
+        print(f"Total de widgets na grid: {len(parent_grid.children)}")
 
     def get_locker_status(self, locker_number):
         """Get complete locker status considering GPIO and database"""

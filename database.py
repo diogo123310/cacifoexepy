@@ -4,6 +4,7 @@ import datetime
 import os
 import threading
 import time
+import random
 from typing import Optional, List, Dict
 
 class LockerDatabase:
@@ -123,9 +124,27 @@ class LockerDatabase:
         test_hash = hashlib.pbkdf2_hmac('sha256', pin.encode(), salt.encode(), 100000)
         return test_hash.hex() == pin_hash
     
-    def book_locker(self, locker_number: str, contact: str, pin: str) -> dict:
-        """Reserva um cacifo para um utilizador"""
+    def generate_new_pin(self) -> str:
+        """Gera um novo PIN de 4 dígitos único"""
+        # Gerar PIN até encontrar um único (versão simplificada)
+        max_attempts = 100
+        for attempt in range(max_attempts):
+            # Gerar PIN de 4 dígitos (evitando 0000)
+            new_pin = f"{random.randint(1, 9999):04d}"
+            
+            # Por simplicidade, verificar apenas se não é um PIN comum
+            if new_pin not in ['0000', '1111', '2222', '3333', '4444', '5555', '6666', '7777', '8888', '9999', '1234', '4321']:
+                return new_pin
+        
+        # Se não encontrar, usar um PIN aleatório mesmo assim
+        return f"{random.randint(1000, 9999):04d}"
+    
+    def book_locker(self, locker_number: str, contact: str, pin: str = None) -> dict:
+        """Reserva um cacifo para um utilizador - gera novo PIN automaticamente se não fornecido"""
         def operation():
+            # Gerar novo PIN se não fornecido (antes da operação da database)
+            generated_pin = pin if pin is not None else self.generate_new_pin()
+            
             conn = self._get_connection()
             try:
                 cursor = conn.cursor()
@@ -143,16 +162,16 @@ class LockerDatabase:
                     return {"success": False, "message": "Cacifo não está disponível"}
                 
                 # Gerar hash do PIN
-                pin_hash, salt = self._hash_pin(pin)
+                pin_hash, salt = self._hash_pin(generated_pin)
                 
                 # Iniciar transação
                 cursor.execute('BEGIN IMMEDIATE')
                 
                 # Criar reserva
                 cursor.execute('''
-                    INSERT INTO bookings (locker_number, contact, pin_hash, pin_salt, status)
-                    VALUES (?, ?, ?, ?, 'active')
-                ''', (locker_number, contact, pin_hash, salt))
+                    INSERT INTO bookings (locker_number, contact, pin_hash, pin_salt, pin_display, status)
+                    VALUES (?, ?, ?, ?, ?, 'booked')
+                ''', (locker_number, contact, pin_hash, salt, generated_pin))
                 
                 # Atualizar status do cacifo
                 cursor.execute('''
@@ -168,12 +187,14 @@ class LockerDatabase:
                 
                 conn.commit()
                 
-                print(f"Cacifo {locker_number} reservado com sucesso para {contact}")
+                print(f"Cacifo {locker_number} reservado com sucesso para {contact} - PIN: {generated_pin}")
                 return {
                     "success": True, 
                     "message": f"Cacifo {locker_number} reservado com sucesso",
                     "locker_number": locker_number,
-                    "contact": contact
+                    "contact": contact,
+                    "pin": generated_pin,  # Retornar o PIN gerado
+                    "booking_id": cursor.lastrowid
                 }
                 
             except Exception as e:
@@ -199,7 +220,7 @@ class LockerDatabase:
                 cursor.execute('''
                     SELECT locker_number, pin_hash, pin_salt, id
                     FROM bookings 
-                    WHERE contact = ? AND status = 'active'
+                    WHERE contact = ? AND status IN ('booked', 'active', 'unlocked')
                     ORDER BY booking_time DESC
                     LIMIT 1
                 ''', (contact,))
@@ -390,3 +411,212 @@ class LockerDatabase:
         
         print(f"Deleted {deleted_rows} old log entries")
         return deleted_rows
+    
+    # ============================================
+    # MÉTODOS DE CONSULTA DE RESERVAS ANTERIORES
+    # ============================================
+    
+    def get_all_bookings(self, limit: int = None) -> List[Dict]:
+        """Obtém todas as reservas ordenadas por data"""
+        def operation():
+            conn = self._get_connection()
+            try:
+                cursor = conn.cursor()
+                query = '''
+                    SELECT 
+                        id, locker_number, contact, status, 
+                        booking_time, unlock_time, return_time, notes, pin_display
+                    FROM bookings 
+                    ORDER BY booking_time DESC
+                '''
+                if limit:
+                    query += f' LIMIT {limit}'
+                
+                cursor.execute(query)
+                results = cursor.fetchall()
+                
+                bookings = []
+                for row in results:
+                    bookings.append({
+                        'id': row[0],
+                        'locker_number': row[1],
+                        'contact': row[2],
+                        'status': row[3],
+                        'booking_time': row[4],
+                        'unlock_time': row[5],
+                        'return_time': row[6],
+                        'notes': row[7],
+                        'pin': row[8]
+                    })
+                return bookings
+            finally:
+                conn.close()
+        
+        return self._execute_with_retry(operation) or []
+    
+    def get_bookings_by_locker(self, locker_number: str) -> List[Dict]:
+        """Obtém histórico de reservas de um locker específico"""
+        def operation():
+            conn = self._get_connection()
+            try:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT 
+                        id, contact, status, booking_time, 
+                        unlock_time, return_time, notes, pin_display
+                    FROM bookings 
+                    WHERE locker_number = ?
+                    ORDER BY booking_time DESC
+                ''', (locker_number,))
+                
+                results = cursor.fetchall()
+                bookings = []
+                for row in results:
+                    bookings.append({
+                        'id': row[0],
+                        'contact': row[1],
+                        'status': row[2],
+                        'booking_time': row[3],
+                        'unlock_time': row[4],
+                        'return_time': row[5],
+                        'notes': row[6],
+                        'pin': row[7]
+                    })
+                return bookings
+            finally:
+                conn.close()
+        
+        return self._execute_with_retry(operation) or []
+    
+    def get_bookings_by_contact(self, contact_search: str) -> List[Dict]:
+        """Obtém reservas por contacto (pesquisa parcial)"""
+        def operation():
+            conn = self._get_connection()
+            try:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT 
+                        id, locker_number, contact, status, 
+                        booking_time, unlock_time, return_time, notes, pin_display
+                    FROM bookings 
+                    WHERE contact LIKE ?
+                    ORDER BY booking_time DESC
+                ''', (f'%{contact_search}%',))
+                
+                results = cursor.fetchall()
+                bookings = []
+                for row in results:
+                    bookings.append({
+                        'id': row[0],
+                        'locker_number': row[1],
+                        'contact': row[2],
+                        'status': row[3],
+                        'booking_time': row[4],
+                        'unlock_time': row[5],
+                        'return_time': row[6],
+                        'notes': row[7],
+                        'pin': row[8]
+                    })
+                return bookings
+            finally:
+                conn.close()
+        
+        return self._execute_with_retry(operation) or []
+    
+    def get_recent_bookings(self, days: int = 7) -> List[Dict]:
+        """Obtém reservas dos últimos X dias"""
+        def operation():
+            conn = self._get_connection()
+            try:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT 
+                        id, locker_number, contact, status, 
+                        booking_time, unlock_time, return_time, notes, pin_display
+                    FROM bookings 
+                    WHERE booking_time >= datetime('now', '-{} days')
+                    ORDER BY booking_time DESC
+                '''.format(days), ())
+                
+                results = cursor.fetchall()
+                bookings = []
+                for row in results:
+                    bookings.append({
+                        'id': row[0],
+                        'locker_number': row[1],
+                        'contact': row[2],
+                        'status': row[3],
+                        'booking_time': row[4],
+                        'unlock_time': row[5],
+                        'return_time': row[6],
+                        'notes': row[7],
+                        'pin': row[8]
+                    })
+                return bookings
+            finally:
+                conn.close()
+        
+        return self._execute_with_retry(operation) or []
+    
+    def get_booking_statistics(self) -> Dict:
+        """Obtém estatísticas detalhadas das reservas"""
+        def operation():
+            conn = self._get_connection()
+            try:
+                cursor = conn.cursor()
+                
+                # Total de reservas
+                cursor.execute('SELECT COUNT(*) FROM bookings')
+                total_bookings = cursor.fetchone()[0]
+                
+                # Reservas por status
+                cursor.execute('SELECT status, COUNT(*) FROM bookings GROUP BY status')
+                status_counts = dict(cursor.fetchall())
+                
+                # Locker mais utilizado
+                cursor.execute('''
+                    SELECT locker_number, COUNT(*) as count 
+                    FROM bookings 
+                    GROUP BY locker_number 
+                    ORDER BY count DESC 
+                    LIMIT 1
+                ''')
+                most_used_result = cursor.fetchone()
+                most_used = {'locker': most_used_result[0], 'count': most_used_result[1]} if most_used_result else None
+                
+                # Reservas por dia (últimos 7 dias)
+                cursor.execute('''
+                    SELECT DATE(booking_time) as date, COUNT(*) as count
+                    FROM bookings 
+                    WHERE booking_time >= date('now', '-7 days')
+                    GROUP BY DATE(booking_time)
+                    ORDER BY date DESC
+                ''')
+                daily_counts = dict(cursor.fetchall())
+                
+                # Tempo médio de utilização (para reservas completadas)
+                cursor.execute('''
+                    SELECT AVG(
+                        CASE 
+                            WHEN return_time IS NOT NULL AND booking_time IS NOT NULL 
+                            THEN (julianday(return_time) - julianday(booking_time)) * 24 
+                            ELSE NULL 
+                        END
+                    ) as avg_hours
+                    FROM bookings 
+                    WHERE status = 'completed'
+                ''')
+                avg_duration_result = cursor.fetchone()
+                avg_duration_hours = avg_duration_result[0] if avg_duration_result[0] else 0
+                
+                return {
+                    'total_bookings': total_bookings,
+                    'status_counts': status_counts,
+                    'most_used_locker': most_used,
+                    'daily_counts': daily_counts,
+                    'average_duration_hours': round(avg_duration_hours, 2) if avg_duration_hours else 0
+                }
+            finally:
+                conn.close()
+        
+        return self._execute_with_retry(operation) or {}
