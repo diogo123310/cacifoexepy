@@ -1,4 +1,5 @@
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.widget import Widget
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
@@ -8,6 +9,7 @@ from kivy.metrics import dp
 from kivy.uix.image import Image
 from kivy.uix.popup import Popup
 from kivy.clock import Clock
+from translations import translator
 import threading
 import time
 import random
@@ -15,6 +17,7 @@ import random
 class ContactPinHeader(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
         self.orientation = 'horizontal'
         self.size_hint_y = None
         self.height = dp(80)
@@ -35,8 +38,14 @@ class ContactPinHeader(BoxLayout):
             logo_widget = Label(text='[b]LS[/b]', markup=True, font_size='24sp', color=(255,1,1,1), size_hint_y=None, height=(dp(40)))
 
         self.add_widget(logo_widget)
-        self.add_widget(Label(text='[b]Luggage Storage auto[/b]', markup=True, font_size='30sp', color=(255/255, 255/255, 255/255, 1), size_hint_y=None, height=dp(40), valign='middle'))
-        self.add_widget(BoxLayout(size_hint_x=0.06))
+        self.title_label = Label(text=f'[b]{translator.get_text("app_title")}[/b]', markup=True, font_size='30sp', color=(255/255, 255/255, 255/255, 1), size_hint_y=None, height=dp(40), valign='middle')
+        self.add_widget(self.title_label)
+        self.add_widget(Widget(size_hint_x=0.06))
+    
+    def update_translations(self):
+        """Update translatable text"""
+        # Update the title text
+        self.title_label.text = f'[b]{translator.get_text("app_title")}[/b]'
 
     def _update_rect(self, instance, value):
         self.rect.pos = self.pos
@@ -60,14 +69,45 @@ class ContactPinFooter(BoxLayout):
         self.add_widget(Label(text='Select Language:', font_size='14sp', color=(0.4, 0.4, 0.4, 1), size_hint_x=None, width=dp(120), valign='middle', halign='left'))
         
         flags_layout = BoxLayout(orientation='horizontal', spacing=dp(5), size_hint_x=None, width=dp(180))
-        for flag_code in ['gb', 'fr', 'de', 'es', 'it']:
-            flags_layout.add_widget(Label(text=flag_code.upper(), size_hint_x=None, width=dp(30), font_size='12sp', color=(0.4,0.4,0.4,1)))
+        
+        # Language mapping
+        language_map = {
+            'gb': 'en',  # GB flag = English language
+            'pt': 'pt',  # Portuguese
+            'fr': 'fr',  # French
+            'de': 'de',  # German
+            'es': 'es',  # Spanish
+            'it': 'it'   # Italian
+        }
+        
+        for flag_code in ['gb', 'pt', 'fr', 'de', 'es', 'it']:
+            flag_button = Button(
+                text=flag_code.upper(), 
+                size_hint_x=None, 
+                width=dp(30), 
+                font_size='12sp',
+                background_color=(1, 1, 1, 0),  # Transparent background
+                color=(0.4, 0.4, 0.4, 1)
+            )
+            flag_button.bind(on_press=lambda x, lang=language_map[flag_code]: self.change_language(lang))
+            flags_layout.add_widget(flag_button)
         self.add_widget(flags_layout)
-        self.add_widget(BoxLayout())
+        self.add_widget(Widget())
 
     def _update_rect(self, instance, value):
         self.rect.pos = self.pos
         self.rect.size = self.size
+    
+    def change_language(self, language_code):
+        """Change the application language"""
+        translator.set_language(language_code)
+        
+        # Find the main screen manager and update all translations
+        from kivy.app import App
+        app = App.get_running_app()
+        if hasattr(app.root, 'update_all_translations'):
+            app.root.update_all_translations()
+        print(f"Language changed to: {language_code}")
 
 class StyledButton(Button):
     def __init__(self, text, button_type='primary', **kwargs):
@@ -100,13 +140,15 @@ class ContactPinScreen(Screen):
     def __init__(self, **kwargs):
         # Remover gpio_controller dos kwargs antes de chamar super()
         self.gpio_controller = kwargs.pop('gpio_controller', None)
+
         super().__init__(**kwargs)
         
         # Layout principal
         main_layout = BoxLayout(orientation='vertical')
         
         # Header azul
-        main_layout.add_widget(ContactPinHeader())
+        self.header = ContactPinHeader()
+        main_layout.add_widget(self.header)
         
         # Área branca principal - aqui é onde tudo vai ficar
         white_area = BoxLayout(orientation='vertical', padding=[dp(40), dp(40), dp(40), dp(20)])
@@ -119,8 +161,8 @@ class ContactPinScreen(Screen):
         white_area.bind(size=lambda instance, value: setattr(white_area.bg_rect, 'size', white_area.size))
         
         # Título
-        title = Label(
-            text='[b]Book Your Locker[/b]',
+        self.title_label = Label(
+            text=f'[b]{translator.get_text("book_locker_title")}[/b]',
             markup=True,
             font_size='32sp',
             color=(0/255, 77/255, 122/255, 1),
@@ -128,23 +170,23 @@ class ContactPinScreen(Screen):
             height=dp(60),
             halign='center'
         )
-        title.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
-        white_area.add_widget(title)
+        self.title_label.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
+        white_area.add_widget(self.title_label)
         
         # Espaçador
-        white_area.add_widget(BoxLayout(size_hint_y=None, height=dp(40)))
+        white_area.add_widget(Widget(size_hint_y=None, height=dp(40)))
         
         # "Contact:" aligned to the left
-        contact_title = Label(
-            text='Contact:',
+        self.contact_title = Label(
+            text=translator.get_text("contact_label"),
             font_size='18sp',
             size_hint_y=None,
             height=dp(30),
             color=(0/255, 77/255, 122/255, 1),
             halign='left'
         )
-        contact_title.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
-        white_area.add_widget(contact_title)
+        self.contact_title.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
+        white_area.add_widget(self.contact_title)
         
         # Contact input field below
         self.contact_input = TextInput(
@@ -159,34 +201,34 @@ class ContactPinScreen(Screen):
         white_area.add_widget(self.contact_input)
         
         # Espaçador
-        white_area.add_widget(BoxLayout(size_hint_y=None, height=dp(30)))
+        white_area.add_widget(Widget(size_hint_y=None, height=dp(30)))
         
         # Instrução
-        instruction = Label(
-            text='Enter your contact information to proceed. A PIN will be generated for your locker.',
+        self.instruction_label = Label(
+            text=translator.get_text("contact_instruction"),
             font_size='16sp',
             size_hint_y=None,
             height=dp(40),
             color=(0.4, 0.4, 0.4, 1),
             halign='center'
         )
-        instruction.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
-        white_area.add_widget(instruction)
+        self.instruction_label.bind(size=lambda instance, value: setattr(self.instruction_label, 'text_size', (self.instruction_label.width, None)))
+        white_area.add_widget(self.instruction_label)
         
         # Espaçador flexível
-        white_area.add_widget(BoxLayout())
+        white_area.add_widget(Widget())
         
         # Botões
         button_layout = BoxLayout(orientation='horizontal', spacing=dp(20), size_hint_y=None, height=dp(50))
         
-        back_button = StyledButton('Back', button_type='secondary', size_hint_x=0.5)
-        back_button.bind(on_press=self.go_back)
+        self.back_button = StyledButton(translator.get_text("back_button"), button_type='secondary', size_hint_x=0.5)
+        self.back_button.bind(on_press=self.go_back)
         
-        confirm_button = StyledButton('Confirm Booking', button_type='primary', size_hint_x=0.5)
-        confirm_button.bind(on_press=self.confirm_booking)
+        self.confirm_button = StyledButton(translator.get_text("confirm_booking"), button_type='primary', size_hint_x=0.5)
+        self.confirm_button.bind(on_press=self.confirm_booking)
         
-        button_layout.add_widget(back_button)
-        button_layout.add_widget(confirm_button)
+        button_layout.add_widget(self.back_button)
+        button_layout.add_widget(self.confirm_button)
         white_area.add_widget(button_layout)
         
         # Adicionar área branca ao layout principal
@@ -517,3 +559,17 @@ when the locker is closed[/color]'''
     def go_back(self, instance):
         if self.manager:
             self.manager.current = 'find_lockers'
+    
+    def update_translations(self):
+        """Update all translatable text elements"""
+        self.header.update_translations()
+        self.title_label.text = f'[b]{translator.get_text("book_locker_title")}[/b]'
+        self.contact_title.text = translator.get_text("contact_label")
+        self.contact_input.hint_text = translator.get_text("contact_hint")
+        self.instruction_label.text = translator.get_text("contact_instruction")
+        
+        # Update button texts
+        if hasattr(self, 'back_button'):
+            self.back_button.text = translator.get_text("back_button")
+        if hasattr(self, 'confirm_button'):
+            self.confirm_button.text = translator.get_text("confirm_booking")

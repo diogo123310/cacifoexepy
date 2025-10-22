@@ -235,11 +235,17 @@ class LockerDatabase:
                 if not self._verify_pin(pin, pin_hash, salt):
                     return None
                 
-                # Atualizar tempo de desbloqueio
+                # Atualizar tempo de desbloqueio e status para returned
                 cursor.execute('''
-                    UPDATE bookings SET unlock_time = CURRENT_TIMESTAMP
+                    UPDATE bookings SET unlock_time = CURRENT_TIMESTAMP, status = 'returned'
                     WHERE id = ?
                 ''', (booking_id,))
+                
+                # Actualizar status do cacifo para available
+                cursor.execute('''
+                    UPDATE lockers SET status = 'available', updated_at = CURRENT_TIMESTAMP
+                    WHERE locker_number = ?
+                ''', (locker_number,))
                 
                 # Log da ação
                 cursor.execute('''

@@ -1,5 +1,6 @@
 import kivy
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.widget import Widget
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
@@ -8,6 +9,7 @@ from kivy.metrics import dp
 from kivy.graphics import Color, RoundedRectangle
 from kivy.properties import StringProperty, BooleanProperty
 from kivy.clock import Clock
+from translations import translator
 
 
 class StyledButton(Button):
@@ -110,13 +112,13 @@ class LockerBox(BoxLayout):
     def _get_status_text(self):
         """Get status text based on locker status"""
         if self.locker_status == 'available':
-            return 'Available'
+            return translator.get_text('status_available')
         elif self.locker_status == 'door_open':
-            return 'Door Open'
+            return translator.get_text('status_door_open')
         elif self.locker_status == 'occupied':
-            return 'Occupied'
+            return translator.get_text('status_occupied')
         else:
-            return 'Available'  # Default
+            return translator.get_text('status_available')  # Default
 
     def _update_rect(self, instance, value):
         self.rect.pos = self.pos
@@ -169,10 +171,12 @@ class BaseScreen(BoxLayout):
             header.rect = RoundedRectangle(pos=header.pos, size=header.size)
         header.bind(pos=self._update_header_rect, size=self._update_header_rect)
 
-        back_button = Button(text='[b]< Back[/b]', markup=True, size_hint_x=None, width=dp(100), font_size='16sp', background_normal='', background_color=(0,0,0,0), color=(1,1,1,1))
-        back_button.bind(on_release=self.go_back)
-        header.add_widget(back_button)
-        header.add_widget(Label(text=f'[b]{title}[/b]', markup=True, font_size='22sp', color=(1,1,1,1), valign='middle', halign='center'))
+        self.back_button = Button(text=f'[b]< {translator.get_text("back_button")}[/b]', markup=True, size_hint_x=None, width=dp(100), font_size='16sp', background_normal='', background_color=(0,0,0,0), color=(1,1,1,1))
+        self.back_button.bind(on_release=self.go_back)
+        header.add_widget(self.back_button)
+        
+        self.title_label = Label(text=f'[b]{title}[/b]', markup=True, font_size='22sp', color=(1,1,1,1), valign='middle', halign='center')
+        header.add_widget(self.title_label)
         # Removed problematic spacer that was creating a yellow square
 
         self.add_widget(header)
@@ -198,7 +202,7 @@ class FindLockersScreen(BaseScreen):
     def __init__(self, manager, **kwargs):
         # Remover gpio_controller dos kwargs antes de chamar super()
         self.gpio_controller = kwargs.pop('gpio_controller', None)
-        super().__init__(manager, title="Find Available Lockers", **kwargs)
+        super().__init__(manager, title=translator.get_text("find_lockers_title"), **kwargs)
         
         # Armazenar referências dos cacifos para atualização
         self.locker_widgets = {}
@@ -213,7 +217,7 @@ class FindLockersScreen(BaseScreen):
             padding=[dp(60), dp(500), dp(60), dp(30)]  # Padding no topo máximo 500dp
         )
         
-        # Grid para os cacifos (2 colunas x 2 linhas) - formato mais quadrado
+        # Grid para os cacifos (2 linhas, 2 colunas - grelha 2x2)
         lockers_grid = GridLayout(
             cols=2,
             rows=2,
@@ -229,16 +233,19 @@ class FindLockersScreen(BaseScreen):
         grid_container.add_widget(lockers_grid)
         
         # Espaçador inicial para empurrar o grid ao máximo para baixo
-        self.content_area.add_widget(BoxLayout(size_hint_y=None, height=dp(400)))  # Espaçador máximo 400dp
+        from kivy.uix.widget import Widget
+        spacer = Widget(size_hint_y=None, height=dp(400))  # Espaçador transparente
+        self.content_area.add_widget(spacer)
         
         self.content_area.add_widget(grid_container)
         
         # Espaçador antes das instruções
-        self.content_area.add_widget(BoxLayout(size_hint_y=None, height=dp(30)))
+        spacer2 = Widget(size_hint_y=None, height=dp(30))  # Espaçador transparente
+        self.content_area.add_widget(spacer2)
         
         # Instructions
-        instructions_label = Label(
-            text="Green lockers are available for booking. Yellow means door is open. Red means occupied. Touch a green locker to book it.",
+        self.instructions_label = Label(
+            text=translator.get_text("find_lockers_instructions"),
             font_size='14sp',
             halign='center',
             valign='middle',
@@ -246,31 +253,54 @@ class FindLockersScreen(BaseScreen):
             size_hint_y=None,
             height=dp(40)
         )
-        instructions_label.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
-        self.content_area.add_widget(instructions_label)
+        self.instructions_label.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
+        self.content_area.add_widget(self.instructions_label)
         
         # Button to update status
-        refresh_button = StyledButton('Refresh Status', button_type='secondary')
-        refresh_button.bind(on_press=self.refresh_locker_status)
-        self.content_area.add_widget(refresh_button)
+        self.refresh_button = StyledButton(translator.get_text("refresh_button"), button_type='secondary')
+        self.refresh_button.bind(on_press=self.refresh_locker_status)
+        self.content_area.add_widget(self.refresh_button)
         
         # Final flexible spacer
-        self.content_area.add_widget(BoxLayout())
+        final_spacer = Widget()  # Espaçador flexível transparente
+        self.content_area.add_widget(final_spacer)
         
         # Schedule automatic update every 2 seconds
         Clock.schedule_interval(self.auto_refresh_status, 2.0)
+    
+    def update_translations(self):
+        """Update all translatable text elements"""
+        # Update header elements
+        if hasattr(self, 'title_label'):
+            self.title_label.text = f'[b]{translator.get_text("find_lockers_title")}[/b]'
+        if hasattr(self, 'back_button'):
+            self.back_button.text = f'[b]< {translator.get_text("back_button")}[/b]'
+        
+        # Update content elements
+        if hasattr(self, 'instructions_label'):
+            self.instructions_label.text = translator.get_text("find_lockers_instructions")
+        if hasattr(self, 'refresh_button'):
+            self.refresh_button.text = translator.get_text("refresh_button")
+        
+        # Update all locker status texts
+        for locker_widget in self.locker_widgets.values():
+            locker_widget._update_color(None, None)  # Trigger status text update
 
     def create_lockers(self, parent_grid):
         """Create locker widgets - apenas os cacifos definidos no sistema"""
+        # Limpar o grid completamente primeiro
+        parent_grid.clear_widgets()
+        
         # Apenas os 4 cacifos principais do sistema
         locker_numbers = ['001', '002', '003', '004']
         
-        print(f"Criando {len(locker_numbers)} cacifos: {locker_numbers}")
+        # Limpar qualquer referência anterior
+        self.locker_widgets.clear()
         
+        # Criar cada cacifo individualmente
         for locker_number in locker_numbers:
             # Get complete locker status (available, door_open, occupied)
             locker_status = self.get_locker_status(locker_number)
-            print(f"Locker {locker_number}: {locker_status}")
             
             locker = LockerBox(locker_number=locker_number, locker_status=locker_status)
             locker.bind(on_locker_select=self.on_locker_selected)
@@ -279,8 +309,6 @@ class FindLockersScreen(BaseScreen):
             self.locker_widgets[locker_number] = locker
             
             parent_grid.add_widget(locker)
-        
-        print(f"Total de widgets na grid: {len(parent_grid.children)}")
 
     def get_locker_status(self, locker_number):
         """Get complete locker status considering GPIO and database"""
@@ -365,7 +393,7 @@ class UnlockLockerScreen(BaseScreen):
     def __init__(self, manager, **kwargs):
         # Remove gpio_controller from kwargs before calling super()
         self.gpio_controller = kwargs.pop('gpio_controller', None)
-        super().__init__(manager, title="Unlock Locker", **kwargs)
+        super().__init__(manager, title=translator.get_text("unlock_locker_title"), **kwargs)
         
         # Database reference
         self.db = self.gpio_controller.db if self.gpio_controller else None
@@ -376,7 +404,7 @@ class UnlockLockerScreen(BaseScreen):
         self.add_widget(self.content_area)
         
         # Flexible spacer that takes 80% of available height
-        self.content_area.add_widget(BoxLayout(size_hint_y=0.8))
+        self.content_area.add_widget(Widget(size_hint_y=0.8))
         
         # Contact section
         contact_section = BoxLayout(orientation='vertical', spacing=dp(10), size_hint_y=None)
@@ -410,7 +438,7 @@ class UnlockLockerScreen(BaseScreen):
         self.content_area.add_widget(contact_section)
         
         # Spacer
-        self.content_area.add_widget(BoxLayout(size_hint_y=None, height=dp(30)))
+        self.content_area.add_widget(Widget(size_hint_y=None, height=dp(30)))
         
         # PIN section
         pin_section = BoxLayout(orientation='vertical', spacing=dp(10), size_hint_y=None)
@@ -446,7 +474,7 @@ class UnlockLockerScreen(BaseScreen):
         self.content_area.add_widget(pin_section)
         
         # Spacer
-        self.content_area.add_widget(BoxLayout(size_hint_y=None, height=dp(40)))
+        self.content_area.add_widget(Widget(size_hint_y=None, height=dp(40)))
         
         # Button to unlock locker (using consistent design)
         unlock_button = StyledButton('Unlock Locker', button_type='primary')
@@ -454,7 +482,7 @@ class UnlockLockerScreen(BaseScreen):
         self.content_area.add_widget(unlock_button)
         
         # Spacer
-        self.content_area.add_widget(BoxLayout(size_hint_y=None, height=dp(20)))
+        self.content_area.add_widget(Widget(size_hint_y=None, height=dp(20)))
         
         # Instruction
         instruction = Label(
@@ -469,7 +497,18 @@ class UnlockLockerScreen(BaseScreen):
         self.content_area.add_widget(instruction)
         
         # Very small flexible spacer at the end (5% of height)
-        self.content_area.add_widget(BoxLayout(size_hint_y=0.05))
+        self.content_area.add_widget(Widget(size_hint_y=0.05))
+    
+    def update_translations(self):
+        """Update all translatable text elements"""
+        # Update header elements
+        if hasattr(self, 'title_label'):
+            self.title_label.text = f'[b]{translator.get_text("unlock_locker_title")}[/b]'
+        if hasattr(self, 'back_button'):
+            self.back_button.text = f'[b]< {translator.get_text("back_button")}[/b]'
+        
+        # Reset the form to ensure clean translation update
+        self.reset_form(None)
 
     def unlock_locker(self, instance):
         """Function to unlock locker using database"""
@@ -478,12 +517,12 @@ class UnlockLockerScreen(BaseScreen):
         
         if not contact or not pin:
             print("Error: Contact and PIN are required")
-            self.show_error_message("Please enter both contact and PIN")
+            self.show_error_message(translator.get_text("error_contact_pin_required"))
             return
         
         if not pin.isdigit() or len(pin) != 4:
             print("Error: PIN must have 4 digits")
-            self.show_error_message("PIN must be exactly 4 digits")
+            self.show_error_message(translator.get_text("error_pin_format"))
             return
         
         if self.db:
@@ -512,7 +551,7 @@ class UnlockLockerScreen(BaseScreen):
                         
                     else:
                         print("Error sending pulse to unlock locker physically")
-                        self.show_error_message("Error unlocking locker physically")
+                        self.show_error_message(translator.get_text("error_unlock_physical"))
                 else:
                     print(f"Locker {locker_number} unlocked (simulation mode)")
                     self.show_unlock_success_message(locker_number)
@@ -525,10 +564,10 @@ class UnlockLockerScreen(BaseScreen):
                     
             else:
                 print("Incorrect contact or PIN, or no active booking")
-                self.show_error_message("Incorrect contact or PIN, or no active booking found")
+                self.show_error_message(translator.get_text("error_incorrect_credentials"))
         else:
             print("Database not available")
-            self.show_error_message("System temporarily unavailable")
+            self.show_error_message(translator.get_text("error_system_unavailable"))
     
     def refresh_find_lockers_screen(self):
         """Refresh the Find Lockers screen status after unlock"""
@@ -591,7 +630,7 @@ class UnlockLockerScreen(BaseScreen):
         
         # Success message
         success_title = Label(
-            text=f'[color=2ECC40][b]✅ Locker {locker_number} Opened![/b][/color]',
+            text=f'[color=2ECC40][b]✅ {translator.get_text("success_locker_opened").format(locker_number=locker_number)}[/b][/color]',
             markup=True,
             font_size='32sp',
             size_hint_y=None,
@@ -602,16 +641,10 @@ class UnlockLockerScreen(BaseScreen):
         self.content_area.add_widget(success_title)
         
         # Spacer
-        self.content_area.add_widget(BoxLayout(size_hint_y=None, height=dp(30)))
+        self.content_area.add_widget(Widget(size_hint_y=None, height=dp(30)))
         
         # Instructions
-        instructions_text = '''[b]The locker is OPEN now![/b]
-
-[color=2ECC40]✅[/color] Retrieve your belongings
-[color=2ECC40]✅[/color] Close the locker door properly
-[color=FF851B]⏰[/color] The locker will close automatically in 10 seconds
-
-[size=14sp][color=808080]If you need more time, you can unlock it again[/color][/size]'''
+        instructions_text = translator.get_text("success_instructions")
         
         instructions_label = Label(
             text=instructions_text,
@@ -626,15 +659,15 @@ class UnlockLockerScreen(BaseScreen):
         self.content_area.add_widget(instructions_label)
         
         # Spacer
-        self.content_area.add_widget(BoxLayout(size_hint_y=None, height=dp(30)))
+        self.content_area.add_widget(Widget(size_hint_y=None, height=dp(30)))
         
         # Back button
-        back_button = StyledButton('Back to Home', button_type='primary')
+        back_button = StyledButton(translator.get_text("back_to_home"), button_type='primary')
         back_button.bind(on_press=lambda x: setattr(self.manager, 'current', 'home'))
         self.content_area.add_widget(back_button)
         
         # Flexible spacer
-        self.content_area.add_widget(BoxLayout())
+        self.content_area.add_widget(Widget())
     
     def show_error_message(self, error_text):
         """Show error message"""
@@ -643,7 +676,7 @@ class UnlockLockerScreen(BaseScreen):
         
         # Error message
         error_title = Label(
-            text=f'[color=FF4136][b]❌ Error[/b][/color]',
+            text=f'[color=FF4136][b]❌ {translator.get_text("error_title")}[/b][/color]',
             markup=True,
             font_size='32sp',
             size_hint_y=None,
@@ -654,7 +687,7 @@ class UnlockLockerScreen(BaseScreen):
         self.content_area.add_widget(error_title)
         
         # Spacer
-        self.content_area.add_widget(BoxLayout(size_hint_y=None, height=dp(30)))
+        self.content_area.add_widget(Widget(size_hint_y=None, height=dp(30)))
         
         # Error text
         error_label = Label(
@@ -670,23 +703,24 @@ class UnlockLockerScreen(BaseScreen):
         self.content_area.add_widget(error_label)
         
         # Spacer
-        self.content_area.add_widget(BoxLayout(size_hint_y=None, height=dp(30)))
+        self.content_area.add_widget(Widget(size_hint_y=None, height=dp(30)))
         
         # Retry button
-        retry_button = StyledButton('Try Again', button_type='secondary')
+        retry_button = StyledButton(translator.get_text("try_again_button"), button_type='secondary')
         retry_button.bind(on_press=self.reset_form)
         self.content_area.add_widget(retry_button)
         
         # Flexible spacer
-        self.content_area.add_widget(BoxLayout())
+        self.content_area.add_widget(Widget())
     
     def reset_form(self, instance):
         """Reset the form for new attempt"""
+        print("Executing reset_form - clearing and rebuilding interface")
         # Clear content area and rebuild the original form
         self.content_area.clear_widgets()
         
         # Flexible spacer that takes 80% of available height
-        self.content_area.add_widget(BoxLayout(size_hint_y=0.8))
+        self.content_area.add_widget(Widget(size_hint_y=0.8))
         
         # Contact section
         contact_section = BoxLayout(orientation='vertical', spacing=dp(10), size_hint_y=None)
@@ -694,7 +728,7 @@ class UnlockLockerScreen(BaseScreen):
         
         # "Contact:" label
         contact_title = Label(
-            text='Contact:',
+            text=translator.get_text("contact_label"),
             font_size='20sp',
             bold=True,
             size_hint_y=None,
@@ -720,7 +754,7 @@ class UnlockLockerScreen(BaseScreen):
         self.content_area.add_widget(contact_section)
         
         # Spacer
-        self.content_area.add_widget(BoxLayout(size_hint_y=None, height=dp(30)))
+        self.content_area.add_widget(Widget(size_hint_y=None, height=dp(30)))
         
         # PIN section
         pin_section = BoxLayout(orientation='vertical', spacing=dp(10), size_hint_y=None)
@@ -756,7 +790,7 @@ class UnlockLockerScreen(BaseScreen):
         self.content_area.add_widget(pin_section)
         
         # Spacer
-        self.content_area.add_widget(BoxLayout(size_hint_y=None, height=dp(40)))
+        self.content_area.add_widget(Widget(size_hint_y=None, height=dp(40)))
         
         # Button to unlock locker (using consistent design)
         unlock_button = StyledButton('Unlock Locker', button_type='primary')
@@ -764,7 +798,7 @@ class UnlockLockerScreen(BaseScreen):
         self.content_area.add_widget(unlock_button)
         
         # Spacer
-        self.content_area.add_widget(BoxLayout(size_hint_y=None, height=dp(20)))
+        self.content_area.add_widget(Widget(size_hint_y=None, height=dp(20)))
         
         # Instruction
         instruction = Label(
@@ -779,4 +813,4 @@ class UnlockLockerScreen(BaseScreen):
         self.content_area.add_widget(instruction)
         
         # Very small flexible spacer at the end (5% of height)
-        self.content_area.add_widget(BoxLayout(size_hint_y=0.05))
+        self.content_area.add_widget(Widget(size_hint_y=0.05))

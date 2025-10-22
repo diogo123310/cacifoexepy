@@ -366,9 +366,19 @@ class MainScreenManager(ScreenManager):
         find_lockers_screen.add_widget(find_lockers_widget)
         self.add_widget(find_lockers_screen)
 
-        unlock_locker_screen = Screen(name='unlock_locker')
-        unlock_locker_widget = UnlockLockerScreen(manager=self, gpio_controller=self.gpio_controller)
-        unlock_locker_screen.add_widget(unlock_locker_widget)
+        class UnlockLockerScreenWrapper(Screen):
+            def __init__(self, screen_manager, **kwargs):
+                super().__init__(**kwargs)
+                self.unlock_widget = UnlockLockerScreen(manager=screen_manager, gpio_controller=screen_manager.gpio_controller)
+                self.add_widget(self.unlock_widget)
+            
+            def on_enter(self, *args):
+                """Reset screen when entering"""
+                print("Resetting unlock locker screen to initial state")
+                if hasattr(self.unlock_widget, 'reset_form'):
+                    self.unlock_widget.reset_form(None)
+        
+        unlock_locker_screen = UnlockLockerScreenWrapper(self, name='unlock_locker')
         self.add_widget(unlock_locker_screen)
 
         # Criar o botão find_lockers_btn
@@ -403,6 +413,47 @@ class MainScreenManager(ScreenManager):
         
         # Definir a tela inicial
         self.current = 'home'
+    
+    def update_all_translations(self):
+        """Atualizar traduções em todas as telas"""
+        # Atualizar tela home
+        home_screen = self.get_screen('home')
+        if hasattr(home_screen, 'children') and len(home_screen.children) > 0:
+            home_widget = home_screen.children[0]
+            if hasattr(home_widget, 'update_translations'):
+                home_widget.update_translations()
+        
+        # Atualizar tela Find Lockers
+        try:
+            find_lockers_screen = self.get_screen('find_lockers')
+            if find_lockers_screen.children:
+                find_lockers_widget = find_lockers_screen.children[0]
+                if hasattr(find_lockers_widget, 'update_translations'):
+                    find_lockers_widget.update_translations()
+        except:
+            pass
+        
+        # Atualizar tela Unlock Locker
+        try:
+            unlock_locker_screen = self.get_screen('unlock_locker')
+            if unlock_locker_screen.children:
+                unlock_locker_widget = unlock_locker_screen.children[0]
+                if hasattr(unlock_locker_widget, 'update_translations'):
+                    unlock_locker_widget.update_translations()
+        except:
+            pass
+        
+        # Atualizar tela Contact PIN
+        try:
+            contact_pin_screen = self.get_screen('contact_pin')
+            if contact_pin_screen.children:
+                contact_pin_widget = contact_pin_screen.children[0]
+                if hasattr(contact_pin_widget, 'update_translations'):
+                    contact_pin_widget.update_translations()
+        except:
+            pass
+        
+        print("Traduções atualizadas em todas as telas")
 
     def _update_icon_text(self, instance, value):
         self.icon_label.text = value
@@ -442,7 +493,8 @@ class LuggageKioskApp(App):
     def build(self):
         # Initialize GPIO when app starts
         initialize_gpio()
-        return MainScreenManager()
+        self.screen_manager = MainScreenManager()
+        return self.screen_manager
     
     def on_stop(self):
         """Clean up GPIO when app closes"""

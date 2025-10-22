@@ -168,18 +168,49 @@ class KioskFooter(BoxLayout):
 
         self.add_widget(Label(text='Select Language:', font_size='14sp', color=(0.4, 0.4, 0.4, 1), size_hint_x=None, width=dp(120), valign='middle', halign='left'))
         
-        # Placeholder for flag images or buttons
-        # In a real app, these would be Image widgets with actual flag sources
-        flags_layout = BoxLayout(orientation='horizontal', spacing=dp(5), size_hint_x=None, width=dp(180))
-        for flag_code in ['gb', 'fr', 'de', 'es', 'it']:
-            # Using a Label as a placeholder for an image to avoid needing actual flag files for this demo
-            flags_layout.add_widget(Label(text=flag_code.upper(), size_hint_x=None, width=dp(30), font_size='12sp', color=(0.4,0.4,0.4,1)))
+        # Language buttons with functionality
+        flags_layout = BoxLayout(orientation='horizontal', spacing=dp(5), size_hint_x=None, width=dp(210))
+        
+        # Language mapping
+        language_map = {
+            'gb': 'en',  # GB flag = English language
+            'pt': 'pt',  # Portuguese
+            'fr': 'fr',  # French
+            'de': 'de',  # German
+            'es': 'es',  # Spanish
+            'it': 'it'   # Italian
+        }
+        
+        for flag_code in ['gb', 'pt', 'fr', 'de', 'es', 'it']:
+            flag_button = Button(
+                text=flag_code.upper(), 
+                size_hint_x=None, 
+                width=dp(30), 
+                font_size='12sp',
+                background_color=(0.9, 0.9, 0.9, 1),  # Light gray background to make it visible as button
+                color=(0.2, 0.2, 0.2, 1)  # Darker text for better contrast
+            )
+            flag_button.bind(on_press=lambda x, lang=language_map[flag_code]: self.change_language(lang))
+            flags_layout.add_widget(flag_button)
+        
         self.add_widget(flags_layout)
         self.add_widget(BoxLayout()) # Spacer
 
     def _update_rect(self, instance, value):
         self.rect.pos = self.pos
         self.rect.size = self.size
+    
+    def change_language(self, language_code):
+        """Change the application language and update all screens"""
+        from translations import translator
+        if translator.set_language(language_code):
+            print(f"Idioma alterado para: {translator.get_language_info().get('name', language_code)}")
+            # Get the main app and update all translations
+            from kivy.app import App
+            app = App.get_running_app()
+            if hasattr(app, 'screen_manager') and hasattr(app.screen_manager, 'update_all_translations'):
+                app.screen_manager.update_all_translations()
+            print(f"Language changed to: {language_code}")
 
 class KioskHomeScreen(BoxLayout):
     def __init__(self, manager, **kwargs):
@@ -199,7 +230,7 @@ class KioskHomeScreen(BoxLayout):
         self.add_widget(BoxLayout(size_hint_y=None, height=dp(30)))  
 
         # Label de boas-vindas centralizado
-        welcome_label = Label(
+        self.welcome_label = Label(
             text='[b]Welcome! How can we help you?[/b]', 
             markup=True, 
             font_size='32sp', 
@@ -209,8 +240,8 @@ class KioskHomeScreen(BoxLayout):
             halign='center', 
             valign='middle'
         )
-        welcome_label.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
-        self.add_widget(welcome_label)
+        self.welcome_label.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
+        self.add_widget(self.welcome_label)
 
         # Espaçador entre welcome e cartões
         self.add_widget(BoxLayout(size_hint_y=None, height=dp(40)))
@@ -220,21 +251,21 @@ class KioskHomeScreen(BoxLayout):
         
         options_grid = GridLayout(cols=2, spacing=dp(30), size_hint_y=None, height=dp(200))
         
-        find_lockers_btn = OptionCard(
+        self.find_lockers_btn = OptionCard(
             icon_char='\uf002',  # FontAwesome search icon (fa-search)
             title_text='Find available lockers',
             description_text='Book a new locker for your bags.'
         )
-        find_lockers_btn.bind(on_release=self.go_to_find_lockers)
-        options_grid.add_widget(find_lockers_btn)
+        self.find_lockers_btn.bind(on_release=self.go_to_find_lockers)
+        options_grid.add_widget(self.find_lockers_btn)
 
-        unlock_locker_btn = OptionCard(
+        self.unlock_locker_btn = OptionCard(
             icon_char='\uf09c',  # FontAwesome unlock icon (fa-unlock)
             title_text='Unlock locker',
             description_text='Access your booked locker.'
         )
-        unlock_locker_btn.bind(on_release=self.go_to_unlock_locker)
-        options_grid.add_widget(unlock_locker_btn)
+        self.unlock_locker_btn.bind(on_release=self.go_to_unlock_locker)
+        options_grid.add_widget(self.unlock_locker_btn)
         
         # Adiciona os cartões ao container principal
         main_content.add_widget(options_grid)
@@ -256,6 +287,31 @@ class KioskHomeScreen(BoxLayout):
     def go_to_unlock_locker(self, instance):
         print("Navigating to Unlock Locker screen.")
         self.manager.current = 'unlock_locker'
+        
+    def update_translations(self):
+        """Update all text elements with current language translations"""
+        from translations import translator
+        
+        # Update welcome message - using home_title for now
+        self.welcome_label.text = f'[b]{translator.get_text("home_title")}[/b]'
+        
+        # Update button texts using correct translation keys
+        self.find_lockers_btn.title_text = translator.get_text("find_lockers_title")
+        self.find_lockers_btn.description_text = translator.get_text("find_lockers_desc")
+        
+        self.unlock_locker_btn.title_text = translator.get_text("unlock_locker_title")
+        self.unlock_locker_btn.description_text = translator.get_text("unlock_locker_desc")
+        
+        # Update the OptionCard labels if they exist
+        if hasattr(self.find_lockers_btn, 'title_label'):
+            self.find_lockers_btn.title_label.text = f'[b]{translator.get_text("find_lockers_title")}[/b]'
+        if hasattr(self.find_lockers_btn, 'description_label'):
+            self.find_lockers_btn.description_label.text = translator.get_text("find_lockers_desc")
+            
+        if hasattr(self.unlock_locker_btn, 'title_label'):
+            self.unlock_locker_btn.title_label.text = f'[b]{translator.get_text("unlock_locker_title")}[/b]'
+        if hasattr(self.unlock_locker_btn, 'description_label'):
+            self.unlock_locker_btn.description_label.text = translator.get_text("unlock_locker_desc")
 
 # For icon display: Kivy's default font (Roboto) often includes FontAwesome glyphs.
 # If not, you might need to register FontAwesome.ttf:
