@@ -6,13 +6,20 @@ from kivy.uix.button import Button
 from kivy.uix.screenmanager import Screen
 from kivy.graphics import Color, RoundedRectangle
 from kivy.metrics import dp
-from kivy.uix.image import Image
+from kivy.uix.image import Image, AsyncImage
 from kivy.uix.popup import Popup
+from kivy.uix.behaviors import ButtonBehavior
 from kivy.clock import Clock
 from translations import translator
 import threading
 import time
 import random
+
+
+class ImageButton(ButtonBehavior, AsyncImage):
+    """Botão clicável que usa uma imagem"""
+    pass
+
 
 class ContactPinHeader(BoxLayout):
     def __init__(self, **kwargs):
@@ -68,7 +75,7 @@ class ContactPinFooter(BoxLayout):
 
         self.add_widget(Label(text='Select Language:', font_size='14sp', color=(0.4, 0.4, 0.4, 1), size_hint_x=None, width=dp(120), valign='middle', halign='left'))
         
-        flags_layout = BoxLayout(orientation='horizontal', spacing=dp(5), size_hint_x=None, width=dp(180))
+        flags_layout = BoxLayout(orientation='horizontal', size_hint_x=None, width=dp(280), spacing=dp(8))
         
         # Language mapping
         language_map = {
@@ -80,14 +87,25 @@ class ContactPinFooter(BoxLayout):
             'it': 'it'   # Italian
         }
         
-        for flag_code in ['gb', 'pt', 'fr', 'de', 'es', 'it']:
-            flag_button = Button(
-                text=flag_code.upper(), 
-                size_hint_x=None, 
-                width=dp(30), 
-                font_size='12sp',
-                background_color=(1, 1, 1, 0),  # Transparent background
-                color=(0.4, 0.4, 0.4, 1)
+        # Bandeiras com imagens redondas 50x50
+        flag_data = [
+            ('gb', 'images/flags/en.png'),
+            ('pt', 'images/flags/pt.png'), 
+            ('fr', 'images/flags/fr.png'),
+            ('de', 'images/flags/de.png'),
+            ('es', 'images/flags/es.png'),
+            ('it', 'images/flags/it.png')
+        ]
+        
+        for flag_code, flag_image in flag_data:
+            flag_button = ImageButton(
+                source=flag_image,
+                size_hint_x=None,
+                width=dp(35),   # 30x30 imagem + 5dp para área de toque
+                height=dp(35),  # Quadrado para imagem redonda
+                size_hint_y=None,
+                allow_stretch=True,
+                keep_ratio=True
             )
             flag_button.bind(on_press=lambda x, lang=language_map[flag_code]: self.change_language(lang))
             flags_layout.add_widget(flag_button)
