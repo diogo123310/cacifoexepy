@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Sistema de Tradução Multi-idioma para o CacifoExe
-Suporte para: Português, Inglês, Espanhol, Francês, Alemão, Italiano
+Suporte para: Português, Inglês, Espanhol, Francês, Alemão, Italiano, Polonês
 """
 
 class TranslationManager:
@@ -16,7 +16,8 @@ class TranslationManager:
                 'es': 'Sistema de Casilleros Automático',
                 'fr': 'Système de Casiers Automatique',
                 'de': 'Automatisches Schließfachsystem',
-                'it': 'Sistema di Armadietti Automatico'
+                'it': 'Sistema di Armadietti Automatico',
+                'pl': 'Automatyczny System Szafek'
             },
             'home_title': {
                 'pt': 'Bem-vindo ao Sistema de Cacifos',
@@ -24,7 +25,8 @@ class TranslationManager:
                 'es': 'Bienvenido al Sistema de Casilleros',
                 'fr': 'Bienvenue au Système de Casiers',
                 'de': 'Willkommen im Schließfachsystem',
-                'it': 'Benvenuto nel Sistema di Armadietti'
+                'it': 'Benvenuto nel Sistema di Armadietti',
+                'pl': 'Witamy w Systemie Szafek'
             },
             'home_subtitle': {
                 'pt': 'Guarde as suas bagagens com segurança',
@@ -32,7 +34,8 @@ class TranslationManager:
                 'es': 'Guarde su equipaje de forma segura', 
                 'fr': 'Rangez vos bagages en sécurité',
                 'de': 'Bewahren Sie Ihr Gepäck sicher auf',
-                'it': 'Conserva i tuoi bagagli in sicurezza'
+                'it': 'Conserva i tuoi bagagli in sicurezza',
+                'pl': 'Przechowuj swój bagaż bezpiecznie'
             },
             'find_lockers_title': {
                 'pt': 'Encontrar cacifos disponíveis',
@@ -40,7 +43,8 @@ class TranslationManager:
                 'es': 'Encontrar casilleros disponibles',
                 'fr': 'Trouver des casiers disponibles', 
                 'de': 'Verfügbare Schließfächer finden',
-                'it': 'Trova armadietti disponibili'
+                'it': 'Trova armadietti disponibili',
+                'pl': 'Znajdź dostępne szafki'
             },
             'find_lockers_desc': {
                 'pt': 'Reserve um novo cacifo para as suas bagagens.',
@@ -48,7 +52,8 @@ class TranslationManager:
                 'es': 'Reserve un nuevo casillero para sus maletas.',
                 'fr': 'Réservez un nouveau casier pour vos bagages.',
                 'de': 'Buchen Sie ein neues Schließfach für Ihr Gepäck.',
-                'it': 'Prenota un nuovo armadietto per le tue borse.'
+                'it': 'Prenota un nuovo armadietto per le tue borse.',
+                'pl': 'Zarezerwuj nową szafkę na swoje torby.'
             },
             'unlock_locker_title': {
                 'pt': 'Desbloquear cacifo',
@@ -56,7 +61,8 @@ class TranslationManager:
                 'es': 'Desbloquear casillero',
                 'fr': 'Déverrouiller le casier',
                 'de': 'Schließfach öffnen',
-                'it': 'Sblocca armadietto'
+                'it': 'Sblocca armadietto',
+                'pl': 'Odblokuj szafkę'
             },
             'unlock_locker_desc': {
                 'pt': 'Aceda ao seu cacifo com contacto e PIN.',
@@ -64,7 +70,44 @@ class TranslationManager:
                 'es': 'Acceda a su casillero con contacto y PIN.',
                 'fr': 'Accédez à votre casier avec contact et PIN.',
                 'de': 'Greifen Sie auf Ihr Schließfach mit Kontakt und PIN zu.',
-                'it': 'Accedi al tuo armadietto con contatto e PIN.'
+                'it': 'Accedi al tuo armadietto con contatto e PIN.',
+                'pl': 'Uzyskaj dostęp do szafki za pomocą kontaktu i PIN-u.'
+            },
+            'how_it_works_title': {
+                'pt': 'Como funciona',
+                'en': 'How it works',
+                'es': 'Cómo funciona',
+                'fr': 'Comment ça marche',
+                'de': 'Wie es funktioniert',
+                'it': 'Come funziona',
+                'pl': 'Jak to działa'
+            },
+            'how_it_works_desc': {
+                'pt': 'Aprenda a usar os nossos cacifos.',
+                'en': 'Learn how to use our lockers.',
+                'es': 'Aprenda a usar nuestros casilleros.',
+                'fr': 'Apprenez à utiliser nos casiers.',
+                'de': 'Erfahren Sie, wie Sie unsere Schließfächer nutzen.',
+                'it': 'Impara a usare i nostri armadietti.',
+                'pl': 'Dowiedz się, jak korzystać z naszych szafek.'
+            },
+            'pricing_title': {
+                'pt': 'Preços',
+                'en': 'Pricing',
+                'es': 'Precios',
+                'fr': 'Tarifs',
+                'de': 'Preise',
+                'it': 'Prezzi',
+                'pl': 'Cennik'
+            },
+            'pricing_desc': {
+                'pt': 'Consulte as nossas tarifas e planos.',
+                'en': 'View our rates and plans.',
+                'es': 'Consulte nuestras tarifas y planes.',
+                'fr': 'Consultez nos tarifs et forfaits.',
+                'de': 'Sehen Sie unsere Tarife und Pläne.',
+                'it': 'Visualizza le nostre tariffe e piani.',
+                'pl': 'Zobacz nasze stawki i plany.'
             },
             
             # === LANGUAGE SELECTION ===
@@ -74,7 +117,8 @@ class TranslationManager:
                 'es': 'Seleccionar Idioma:',
                 'fr': 'Sélectionner la Langue:',
                 'de': 'Sprache Wählen:',
-                'it': 'Seleziona Lingua:'
+                'it': 'Seleziona Lingua:',
+                'pl': 'Wybierz Język:'
             },
             
             # === FIND LOCKERS SCREEN ===
@@ -84,7 +128,8 @@ class TranslationManager:
                 'es': 'Encontrar Casilleros',
                 'fr': 'Trouver Casiers',
                 'de': 'Schließfächer Finden',
-                'it': 'Trova Armadietti'
+                'it': 'Trova Armadietti',
+                'pl': 'Znajdź Szafki'
             },
             'find_lockers_instructions': {
                 'pt': 'Cacifos verdes estão disponíveis para reserva. Amarelo significa porta aberta. Vermelho significa ocupado. Toque num cacifo verde para reservá-lo.',
@@ -92,7 +137,8 @@ class TranslationManager:
                 'es': 'Los casilleros verdes están disponibles para reservar. Amarillo significa puerta abierta. Rojo significa ocupado. Toca un casillero verde para reservarlo.',
                 'fr': 'Les casiers verts sont disponibles pour réservation. Jaune signifie porte ouverte. Rouge signifie occupé. Touchez un casier vert pour le réserver.',
                 'de': 'Grüne Schließfächer sind für die Buchung verfügbar. Gelb bedeutet Tür offen. Rot bedeutet besetzt. Berühren Sie ein grünes Schließfach, um es zu buchen.',
-                'it': 'Gli armadietti verdi sono disponibili per la prenotazione. Giallo significa porta aperta. Rosso significa occupato. Tocca un armadietto verde per prenotarlo.'
+                'it': 'Gli armadietti verdi sono disponibili per la prenotazione. Giallo significa porta aperta. Rosso significa occupato. Tocca un armadietto verde per prenotarlo.',
+                'pl': 'Zielone szafki są dostępne do rezerwacji. Żółty oznacza otwarte drzwi. Czerwony oznacza zajęte. Dotknij zielonej szafki, aby ją zarezerwować.'
             },
             'available_lockers_title': {
                 'pt': 'Cacifos Disponíveis',
@@ -100,7 +146,8 @@ class TranslationManager:
                 'es': 'Casilleros Disponibles',
                 'fr': 'Casiers Disponibles',
                 'de': 'Verfügbare Schließfächer',
-                'it': 'Armadietti Disponibili'
+                'it': 'Armadietti Disponibili',
+                'pl': 'Dostępne Szafki'
             },
             'status_available': {
                 'pt': 'Disponível',
@@ -108,7 +155,8 @@ class TranslationManager:
                 'es': 'Disponible',
                 'fr': 'Disponible',
                 'de': 'Verfügbar',
-                'it': 'Disponibile'
+                'it': 'Disponibile',
+                'pl': 'Dostępna'
             },
             'status_occupied': {
                 'pt': 'Ocupado',
@@ -116,7 +164,8 @@ class TranslationManager:
                 'es': 'Ocupado',
                 'fr': 'Occupé',
                 'de': 'Besetzt',
-                'it': 'Occupato'
+                'it': 'Occupato',
+                'pl': 'Zajęta'
             },
             'status_door_open': {
                 'pt': 'Porta Aberta',
@@ -124,7 +173,8 @@ class TranslationManager:
                 'es': 'Puerta Abierta',
                 'fr': 'Porte Ouverte',
                 'de': 'Tür Offen',
-                'it': 'Porta Aperta'
+                'it': 'Porta Aperta',
+                'pl': 'Drzwi Otwarte'
             },
             'back_to_home': {
                 'pt': 'Voltar ao Início',
@@ -132,7 +182,8 @@ class TranslationManager:
                 'es': 'Volver al Inicio',
                 'fr': 'Retour à l\'Accueil',
                 'de': 'Zurück zum Start',
-                'it': 'Torna alla Home'
+                'it': 'Torna alla Home',
+                'pl': 'Powrót do Strony Głównej'
             },
             
             # === BOOKING SCREEN ===
@@ -142,7 +193,8 @@ class TranslationManager:
                 'es': 'Reserve su Casillero',
                 'fr': 'Réservez votre Casier',
                 'de': 'Ihr Schließfach Buchen',
-                'it': 'Prenota il Tuo Armadietto'
+                'it': 'Prenota il Tuo Armadietto',
+                'pl': 'Zarezerwuj Swoją Szafkę'
             },
             'contact_label': {
                 'pt': 'Informações de Contacto',
@@ -150,7 +202,8 @@ class TranslationManager:
                 'es': 'Información de Contacto',
                 'fr': 'Informations de Contact',
                 'de': 'Kontaktinformationen',
-                'it': 'Informazioni di Contatto'
+                'it': 'Informazioni di Contatto',
+                'pl': 'Informacje Kontaktowe'
             },
             'contact_instruction': {
                 'pt': 'Introduza os seus dados de contacto para continuar. Será gerado um PIN para o seu cacifo.',
@@ -158,7 +211,8 @@ class TranslationManager:
                 'es': 'Introduzca sus datos de contacto para continuar. Se generará un PIN para su casillero.',
                 'fr': 'Entrez vos coordonnées pour continuer. Un PIN sera généré pour votre casier.',
                 'de': 'Geben Sie Ihre Kontaktdaten ein, um fortzufahren. Eine PIN wird für Ihr Schließfach generiert.',
-                'it': 'Inserisci i tuoi dettagli di contatto per continuare. Verrà generato un PIN per il tuo armadietto.'
+                'it': 'Inserisci i tuoi dettagli di contatto per continuare. Verrà generato un PIN per il tuo armadietto.',
+                'pl': 'Wprowadź swoje dane kontaktowe, aby kontynuować. PIN zostanie wygenerowany dla Twojej szafki.'
             },
             'contact_label_short': {
                 'pt': 'Contacto:',
@@ -174,7 +228,8 @@ class TranslationManager:
                 'es': 'ejemplo@email.com o +34 123 456 789',
                 'fr': 'exemple@email.com ou +33 123 456 789',
                 'de': 'beispiel@email.com oder +49 123 456 789',
-                'it': 'esempio@email.com o +39 123 456 789'
+                'it': 'esempio@email.com o +39 123 456 789',
+                'pl': 'przyklad@email.com lub +48 123 456 789'
             },
             'contact_placeholder': {
                 'pt': 'exemplo@email.com ou +351 123 456 789',
@@ -182,7 +237,8 @@ class TranslationManager:
                 'es': 'ejemplo@email.com o +34 123 456 789',
                 'fr': 'exemple@email.com ou +33 123 456 789',
                 'de': 'beispiel@email.com oder +49 123 456 789',
-                'it': 'esempio@email.com o +39 123 456 789'
+                'it': 'esempio@email.com o +39 123 456 789',
+                'pl': 'przyklad@email.com lub +48 123 456 789'
             },
             'back_button': {
                 'pt': 'Voltar',
@@ -190,7 +246,8 @@ class TranslationManager:
                 'es': 'Atrás',
                 'fr': 'Retour',
                 'de': 'Zurück',
-                'it': 'Indietro'
+                'it': 'Indietro',
+                'pl': 'Wstecz'
             },
             'confirm_booking': {
                 'pt': 'Confirmar Reserva',
@@ -198,7 +255,8 @@ class TranslationManager:
                 'es': 'Confirmar Reserva',
                 'fr': 'Confirmer la Réservation',
                 'de': 'Buchung Bestätigen',
-                'it': 'Conferma Prenotazione'
+                'it': 'Conferma Prenotazione',
+                'pl': 'Potwierdź Rezerwację'
             },
             'booking_success': {
                 'pt': 'Reserva realizada com sucesso!',
@@ -206,7 +264,8 @@ class TranslationManager:
                 'es': '¡Reserva realizada con éxito!',
                 'fr': 'Réservation effectuée avec succès!',
                 'de': 'Buchung erfolgreich abgeschlossen!',
-                'it': 'Prenotazione completata con successo!'
+                'it': 'Prenotazione completata con successo!',
+                'pl': 'Rezerwacja zakończona sukcesem!'
             },
             'locker_booked': {
                 'pt': 'Cacifo reservado com sucesso!',
@@ -230,7 +289,8 @@ class TranslationManager:
                 'es': 'Error',
                 'fr': 'Erreur',
                 'de': 'Fehler',
-                'it': 'Errore'
+                'it': 'Errore',
+                'pl': 'Błąd'
             },
             'ok': {
                 'pt': 'OK',
@@ -238,7 +298,8 @@ class TranslationManager:
                 'es': 'OK',
                 'fr': 'OK',
                 'de': 'OK',
-                'it': 'OK'
+                'it': 'OK',
+                'pl': 'OK'
             },
             
             # === UNLOCK SCREEN ===
@@ -248,7 +309,8 @@ class TranslationManager:
                 'es': 'Desbloquear Casilleros',
                 'fr': 'Déverrouiller Casiers',
                 'de': 'Schließfächer Öffnen',
-                'it': 'Sblocca Armadietti'
+                'it': 'Sblocca Armadietti',
+                'pl': 'Odblokuj Szafki'
             },
             'contact_pin_title': {
                 'pt': 'Contacto e PIN',
@@ -256,7 +318,8 @@ class TranslationManager:
                 'es': 'Contacto y PIN',
                 'fr': 'Contact et PIN',
                 'de': 'Kontakt und PIN',
-                'it': 'Contatto e PIN'
+                'it': 'Contatto e PIN',
+                'pl': 'Kontakt i PIN'
             },
             'unlock_instruction': {
                 'pt': 'Introduza o seu contacto e PIN para desbloquear o seu cacifo.',
@@ -272,7 +335,8 @@ class TranslationManager:
                 'es': 'PIN:',
                 'fr': 'PIN:',
                 'de': 'PIN:',
-                'it': 'PIN:'
+                'it': 'PIN:',
+                'pl': 'PIN:'
             },
             'pin_hint': {
                 'pt': 'Introduza o seu PIN',
@@ -280,7 +344,8 @@ class TranslationManager:
                 'es': 'Introduzca su PIN',
                 'fr': 'Entrez votre PIN',
                 'de': 'Geben Sie Ihre PIN ein',
-                'it': 'Inserisci il tuo PIN'
+                'it': 'Inserisci il tuo PIN',
+                'pl': 'Wprowadź swój PIN'
             },
             'unlock_button': {
                 'pt': 'Desbloquear',
@@ -288,7 +353,8 @@ class TranslationManager:
                 'es': 'Desbloquear',
                 'fr': 'Déverrouiller',
                 'de': 'Öffnen',
-                'it': 'Sblocca'
+                'it': 'Sblocca',
+                'pl': 'Odblokuj'
             },
             'invalid_credentials': {
                 'pt': 'Contacto ou PIN inválidos',
@@ -304,7 +370,26 @@ class TranslationManager:
                 'es': '¡Casillero desbloqueado con éxito!',
                 'fr': 'Casier déverrouillé avec succès!',
                 'de': 'Schließfach erfolgreich geöffnet!',
-                'it': 'Armadietto sbloccato con successo!'
+                'it': 'Armadietto sbloccato con successo!',
+                'pl': 'Szafka została pomyślnie odblokowana!'
+            },
+            'thank_you_message': {
+                'pt': 'Obrigado pela sua escolha!',
+                'en': 'Thank you for your choice!',
+                'es': '¡Gracias por tu elección!',
+                'fr': 'Merci pour votre choix!',
+                'de': 'Vielen Dank für Ihre Wahl!',
+                'it': 'Grazie per la tua scelta!',
+                'pl': 'Dziękujemy za wybór!'
+            },
+            'come_back_soon': {
+                'pt': 'Volte sempre!',
+                'en': 'Come back soon!',
+                'es': '¡Vuelve pronto!',
+                'fr': 'Revenez bientôt!',
+                'de': 'Kommen Sie bald wieder!',
+                'it': 'Torna presto!',
+                'pl': 'Wróć wkrótce!'
             },
             'refresh_button': {
                 'pt': 'Atualizar Estado',
@@ -331,7 +416,8 @@ class TranslationManager:
             'es': {'name': 'Español', 'flag': '🇪🇸', 'code': 'ES'},
             'fr': {'name': 'Français', 'flag': '🇫🇷', 'code': 'FR'},
             'de': {'name': 'Deutsch', 'flag': '🇩🇪', 'code': 'DE'},
-            'it': {'name': 'Italiano', 'flag': '🇮🇹', 'code': 'IT'}
+            'it': {'name': 'Italiano', 'flag': '🇮🇹', 'code': 'IT'},
+            'pl': {'name': 'Polski', 'flag': '🇵🇱', 'code': 'PL'}
         }
     
     def set_language(self, language_code):

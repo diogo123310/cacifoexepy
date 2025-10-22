@@ -233,14 +233,13 @@ class FindLockersScreen(BaseScreen):
         grid_container.add_widget(lockers_grid)
         
         # Espaçador inicial para empurrar o grid ao máximo para baixo
-        from kivy.uix.widget import Widget
-        spacer = Widget(size_hint_y=None, height=dp(400))  # Espaçador transparente
+        spacer = BoxLayout(size_hint_y=None, height=dp(400))
         self.content_area.add_widget(spacer)
         
         self.content_area.add_widget(grid_container)
         
         # Espaçador antes das instruções
-        spacer2 = Widget(size_hint_y=None, height=dp(30))  # Espaçador transparente
+        spacer2 = BoxLayout(size_hint_y=None, height=dp(30))
         self.content_area.add_widget(spacer2)
         
         # Instructions
@@ -262,7 +261,7 @@ class FindLockersScreen(BaseScreen):
         self.content_area.add_widget(self.refresh_button)
         
         # Final flexible spacer
-        final_spacer = Widget()  # Espaçador flexível transparente
+        final_spacer = BoxLayout()
         self.content_area.add_widget(final_spacer)
         
         # Schedule automatic update every 2 seconds
@@ -624,42 +623,81 @@ class UnlockLockerScreen(BaseScreen):
         return '001'  # Simulate that locker 001 belongs to this user
     
     def show_unlock_success_message(self, locker_number):
-        """Show success message for unlock"""
+        """Show friendly success message for unlock"""
         # Clear content area
         self.content_area.clear_widgets()
         
+        # Top spacer
+        top_spacer = BoxLayout(size_hint_y=None, height=dp(30))
+        self.content_area.add_widget(top_spacer)
+        
+        # Big success checkmark icon (using simple symbol that Kivy renders well)
+        success_icon = Label(
+            text='[color=2ECC40][b]✓[/b][/color]',
+            markup=True,
+            font_size='150sp',
+            size_hint_y=None,
+            height=dp(150),
+            halign='center'
+        )
+        success_icon.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
+        self.content_area.add_widget(success_icon)
+        
         # Success message
         success_title = Label(
-            text=f'[color=2ECC40][b]✅ {translator.get_text("success_locker_opened").format(locker_number=locker_number)}[/b][/color]',
+            text=f'[color=2ECC40][b]{translator.get_text("locker_unlocked")}[/b][/color]',
             markup=True,
-            font_size='32sp',
+            font_size='28sp',
             size_hint_y=None,
-            height=dp(80),
+            height=dp(70),
             halign='center'
         )
         success_title.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
         self.content_area.add_widget(success_title)
         
-        # Spacer
-        self.content_area.add_widget(Widget(size_hint_y=None, height=dp(30)))
-        
-        # Instructions
-        instructions_text = translator.get_text("success_instructions")
-        
-        instructions_label = Label(
-            text=instructions_text,
+        # Locker number display with colorful background
+        locker_info = Label(
+            text=f'[color=004D7A][b]Locker #{locker_number}[/b][/color]',
             markup=True,
-            font_size='18sp',
-            halign='center',
-            valign='middle',
+            font_size='42sp',
             size_hint_y=None,
-            height=dp(200)
+            height=dp(80),
+            halign='center'
         )
-        instructions_label.bind(size=lambda instance, value: setattr(instructions_label, 'text_size', (instructions_label.width, None)))
-        self.content_area.add_widget(instructions_label)
+        locker_info.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
+        self.content_area.add_widget(locker_info)
         
         # Spacer
-        self.content_area.add_widget(Widget(size_hint_y=None, height=dp(30)))
+        spacer1 = BoxLayout(size_hint_y=None, height=dp(40))
+        self.content_area.add_widget(spacer1)
+        
+        # Thank you message
+        thank_you = Label(
+            text=f'[color=FF6B35][b]{translator.get_text("thank_you_message")}[/b][/color]',
+            markup=True,
+            font_size='26sp',
+            size_hint_y=None,
+            height=dp(60),
+            halign='center'
+        )
+        thank_you.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
+        self.content_area.add_widget(thank_you)
+        
+        # Come back soon message
+        come_back = Label(
+            text=f'[color=7209B7][b]{translator.get_text("come_back_soon")}[/b][/color]',
+            markup=True,
+            font_size='24sp',
+            size_hint_y=None,
+            height=dp(60),
+            halign='center'
+        )
+        come_back.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
+        self.content_area.add_widget(come_back)
+        
+        # Spacer
+        spacer2 = BoxLayout(size_hint_y=None, height=dp(40))
+        self.content_area.add_widget(spacer2)
         
         # Back button
         back_button = StyledButton(translator.get_text("back_to_home"), button_type='primary')
@@ -667,7 +705,8 @@ class UnlockLockerScreen(BaseScreen):
         self.content_area.add_widget(back_button)
         
         # Flexible spacer
-        self.content_area.add_widget(Widget())
+        final_spacer = BoxLayout()
+        self.content_area.add_widget(final_spacer)
     
     def show_error_message(self, error_text):
         """Show error message"""

@@ -75,7 +75,7 @@ class ContactPinFooter(BoxLayout):
 
         self.add_widget(Label(text='Select Language:', font_size='14sp', color=(0.4, 0.4, 0.4, 1), size_hint_x=None, width=dp(120), valign='middle', halign='left'))
         
-        flags_layout = BoxLayout(orientation='horizontal', size_hint_x=None, width=dp(280), spacing=dp(8))
+        flags_layout = BoxLayout(orientation='horizontal', size_hint_x=None, width=dp(315), spacing=dp(8))
         
         # Language mapping
         language_map = {
@@ -84,17 +84,19 @@ class ContactPinFooter(BoxLayout):
             'fr': 'fr',  # French
             'de': 'de',  # German
             'es': 'es',  # Spanish
-            'it': 'it'   # Italian
+            'it': 'it',  # Italian
+            'pl': 'pl'   # Polish
         }
         
-        # Bandeiras com imagens redondas 50x50
+        # Bandeiras com imagens redondas 30x30
         flag_data = [
             ('gb', 'images/flags/en.png'),
             ('pt', 'images/flags/pt.png'), 
             ('fr', 'images/flags/fr.png'),
             ('de', 'images/flags/de.png'),
             ('es', 'images/flags/es.png'),
-            ('it', 'images/flags/it.png')
+            ('it', 'images/flags/it.png'),
+            ('pl', 'images/flags/pl.png')
         ]
         
         for flag_code, flag_image in flag_data:

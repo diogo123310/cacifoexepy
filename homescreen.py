@@ -175,7 +175,7 @@ class KioskFooter(BoxLayout):
         self.add_widget(Label(text='Select Language:', font_size='14sp', color=(0.4, 0.4, 0.4, 1), size_hint_x=None, width=dp(120), valign='middle', halign='left'))
         
         # Language buttons with functionality
-        flags_layout = BoxLayout(orientation='horizontal', spacing=dp(8), size_hint_x=None, width=dp(280))
+        flags_layout = BoxLayout(orientation='horizontal', spacing=dp(8), size_hint_x=None, width=dp(315))
         
         # Language mapping
         language_map = {
@@ -184,17 +184,19 @@ class KioskFooter(BoxLayout):
             'fr': 'fr',  # French
             'de': 'de',  # German
             'es': 'es',  # Spanish
-            'it': 'it'   # Italian
+            'it': 'it',  # Italian
+            'pl': 'pl'   # Polish
         }
         
-        # Bandeiras com imagens redondas 50x50
+        # Bandeiras com imagens redondas 30x30
         flag_data = [
             ('gb', 'images/flags/en.png'),
             ('pt', 'images/flags/pt.png'), 
             ('fr', 'images/flags/fr.png'),
             ('de', 'images/flags/de.png'),
             ('es', 'images/flags/es.png'),
-            ('it', 'images/flags/it.png')
+            ('it', 'images/flags/it.png'),
+            ('pl', 'images/flags/pl.png')
         ]
         
         for flag_code, flag_image in flag_data:
@@ -287,6 +289,59 @@ class KioskHomeScreen(BoxLayout):
         # Adiciona os cartões ao container principal
         main_content.add_widget(options_grid)
         
+        # Espaçador entre botões principais e secundários
+        main_content.add_widget(BoxLayout(size_hint_y=None, height=dp(20)))
+        
+        # Container centralizado para botões secundários
+        secondary_container = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(110))
+        # Espaçador esquerdo
+        secondary_container.add_widget(BoxLayout(size_hint_x=0.15))
+        
+        # Botões secundários (menores) - How it Works e Preços
+        secondary_grid = GridLayout(cols=2, spacing=dp(20), size_hint=(0.7, None), height=dp(110))
+        
+        self.how_it_works_btn = OptionCard(
+            icon_char='\uf05a',  # FontAwesome info-circle icon
+            title_text='How it works',
+            description_text='Learn how to use our lockers.'
+        )
+        self.how_it_works_btn.bind(on_release=self.go_to_how_it_works)
+        # Fazer o cartão menor - reduzir altura para 110dp
+        self.how_it_works_btn.height = dp(110)
+        # Ajustar tamanhos dos elementos internos
+        self.how_it_works_btn.icon_label.font_size = '30sp'
+        self.how_it_works_btn.icon_label.height = dp(35)
+        self.how_it_works_btn.title_label.font_size = '15sp'
+        self.how_it_works_btn.title_label.height = dp(25)
+        self.how_it_works_btn.description_label.font_size = '11sp'
+        self.how_it_works_btn.description_label.height = dp(30)
+        self.how_it_works_btn.padding = dp(15)
+        secondary_grid.add_widget(self.how_it_works_btn)
+        
+        self.pricing_btn = OptionCard(
+            icon_char='\uf155',  # FontAwesome euro icon
+            title_text='Pricing',
+            description_text='View our rates and plans.'
+        )
+        self.pricing_btn.bind(on_release=self.go_to_pricing)
+        # Fazer o cartão menor - reduzir altura para 110dp
+        self.pricing_btn.height = dp(110)
+        # Ajustar tamanhos dos elementos internos
+        self.pricing_btn.icon_label.font_size = '30sp'
+        self.pricing_btn.icon_label.height = dp(35)
+        self.pricing_btn.title_label.font_size = '15sp'
+        self.pricing_btn.title_label.height = dp(25)
+        self.pricing_btn.description_label.font_size = '11sp'
+        self.pricing_btn.description_label.height = dp(30)
+        self.pricing_btn.padding = dp(15)
+        secondary_grid.add_widget(self.pricing_btn)
+        
+        secondary_container.add_widget(secondary_grid)
+        # Espaçador direito
+        secondary_container.add_widget(BoxLayout(size_hint_x=0.15))
+        
+        main_content.add_widget(secondary_container)
+        
         # Espaçador final
         main_content.add_widget(BoxLayout())  # Spacer flexível
 
@@ -304,6 +359,16 @@ class KioskHomeScreen(BoxLayout):
     def go_to_unlock_locker(self, instance):
         print("Navigating to Unlock Locker screen.")
         self.manager.current = 'unlock_locker'
+    
+    def go_to_how_it_works(self, instance):
+        print("Navigating to How It Works screen.")
+        # TODO: Implementar tela How It Works
+        pass
+    
+    def go_to_pricing(self, instance):
+        print("Navigating to Pricing screen.")
+        # TODO: Implementar tela Pricing
+        pass
         
     def update_translations(self):
         """Update all text elements with current language translations"""
@@ -318,6 +383,13 @@ class KioskHomeScreen(BoxLayout):
         
         self.unlock_locker_btn.title_text = translator.get_text("unlock_locker_title")
         self.unlock_locker_btn.description_text = translator.get_text("unlock_locker_desc")
+        
+        # Update secondary buttons
+        self.how_it_works_btn.title_text = translator.get_text("how_it_works_title")
+        self.how_it_works_btn.description_text = translator.get_text("how_it_works_desc")
+        
+        self.pricing_btn.title_text = translator.get_text("pricing_title")
+        self.pricing_btn.description_text = translator.get_text("pricing_desc")
         
         # Update the OptionCard labels if they exist
         if hasattr(self.find_lockers_btn, 'title_label'):
