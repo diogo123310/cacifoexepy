@@ -389,11 +389,16 @@ class FindLockersScreen(BaseScreen):
         print(f"DEBUG: Navigating to contact_pin for locker {locker_number}")
         # Clear contact input before navigating
         contact_screen = self.manager.get_screen('contact_pin')
-        if hasattr(contact_screen, 'contact_input'):
-            print('########## CLEARING CONTACT INPUT ##########')
-            contact_screen.contact_input.text = ''
-            contact_screen.contact_input.focus = False
-            print('Contact input cleared before navigation!')
+        print('########## CLEARING CONTACT FIELDS ##########')
+        if hasattr(contact_screen, 'birth_date_input'):
+            contact_screen.birth_date_input.text = ''
+        if hasattr(contact_screen, 'country_code_input'):
+            contact_screen.country_code_input.text = '+351'
+        if hasattr(contact_screen, 'phone_input'):
+            contact_screen.phone_input.text = ''
+        if hasattr(contact_screen, 'email_input'):
+            contact_screen.email_input.text = ''
+        print('All contact fields cleared before navigation!')
 
         # Navigate to contact and PIN screen
         if self.manager:
