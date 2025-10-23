@@ -582,6 +582,13 @@ when the locker is closed[/color]'''
     
     def update_translations(self):
         """Update all translatable text elements"""
+                # Reset contact input field
+        print("========== RESET FORM CALLED in update_translations ==========")
+        if hasattr(self, 'contact_input'):
+            self.contact_input.text = ''
+            self.contact_input.focus = False
+            print("Contact input cleared!")
+        
         self.header.update_translations()
         self.title_label.text = f'[b]{translator.get_text("book_locker_title")}[/b]'
         self.contact_title.text = translator.get_text("contact_label")
@@ -593,3 +600,5 @@ when the locker is closed[/color]'''
             self.back_button.text = translator.get_text("back_button")
         if hasattr(self, 'confirm_button'):
             self.confirm_button.text = translator.get_text("confirm_booking")
+
+

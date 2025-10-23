@@ -367,27 +367,40 @@ class FindLockersScreen(BaseScreen):
         # Check availability in database
         if self.db:
             db_status = self.db.get_locker_status(locker_number)
+            print(f"DEBUG: Locker {locker_number} database status: {db_status}")
             if db_status != 'available':
-                print(f"Locker {locker_number} is not available in database!")
+                print(f"Locker {locker_number} is not available in database! (status: {db_status})")
                 self.refresh_locker_status()
                 return
         
         # Check if locker is still physically available
         if self.gpio_controller:
             current_states = self.gpio_controller.get_all_locker_states()
-            if not current_states.get(locker_number, {}).get('available', False):
-                print(f"Locker {locker_number} is no longer available!")
+            locker_state = current_states.get(locker_number, {})
+            is_available = locker_state.get('available', False)
+            print(f"DEBUG: Locker {locker_number} physical availability: {is_available}")
+            if not is_available:
+                print(f"Locker {locker_number} is no longer physically available!")
                 self.refresh_locker_status()  # Update display
                 return
         
         # Store selected locker for later use
         self.manager.selected_locker = locker_number
-        
+        print(f"DEBUG: Navigating to contact_pin for locker {locker_number}")
+        # Clear contact input before navigating
+        contact_screen = self.manager.get_screen('contact_pin')
+        if hasattr(contact_screen, 'contact_input'):
+            print('########## CLEARING CONTACT INPUT ##########')
+            contact_screen.contact_input.text = ''
+            contact_screen.contact_input.focus = False
+            print('Contact input cleared before navigation!')
+
         # Navigate to contact and PIN screen
         if self.manager:
             self.manager.current = 'contact_pin'
+            print(f"DEBUG: Navigation completed - current screen: {self.manager.current}")
 
-
+    
 class UnlockLockerScreen(BaseScreen):
     def __init__(self, manager, **kwargs):
         # Remove gpio_controller from kwargs before calling super()
@@ -853,3 +866,5 @@ class UnlockLockerScreen(BaseScreen):
         
         # Very small flexible spacer at the end (5% of height)
         self.content_area.add_widget(Widget(size_hint_y=0.05))
+
+
