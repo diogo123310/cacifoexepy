@@ -220,16 +220,27 @@ class ContactPinScreen(Screen):
         birth_label.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
         white_area.add_widget(birth_label)
         
+        # Layout horizontal para data de nascimento (50% da largura)
+        birth_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(45))
+        
         self.birth_date_input = TextInput(
             hint_text='DD/MM/AAAA',
             multiline=False,
             font_size='16sp',
-            size_hint_y=None,
-            height=dp(45),
+            size_hint_x=0.35,
             background_color=(0.95, 0.95, 0.95, 1),
             foreground_color=(0.2, 0.2, 0.2, 1)
         )
-        white_area.add_widget(self.birth_date_input)
+        # Validação para data: só aceita números e /
+        def validate_date(text, from_undo):
+            return all(c.isdigit() or c == '/' for c in text)
+        self.birth_date_input.bind(text=lambda instance, value: setattr(instance, 'text', ''.join(c for c in value if c.isdigit() or c == '/')))
+        birth_layout.add_widget(self.birth_date_input)
+        
+        # Espaçador para manter o campo à esquerda
+        birth_layout.add_widget(Widget(size_hint_x=0.65))
+        
+        white_area.add_widget(birth_layout)
         
         white_area.add_widget(Widget(size_hint_y=None, height=dp(15)))
         
