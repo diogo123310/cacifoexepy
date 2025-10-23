@@ -208,106 +208,17 @@ class ContactPinScreen(Screen):
         self.contact_title.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
         white_area.add_widget(self.contact_title)
         
-        # Birth Date Field
-        birth_label = Label(
-            text='Data de Nascimento:',
-            font_size='16sp',
-            size_hint_y=None,
-            height=dp(25),
-            color=(0/255, 77/255, 122/255, 1),
-            halign='left'
-        )
-        birth_label.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
-        white_area.add_widget(birth_label)
-        
-        # Layout horizontal para data de nascimento (50% da largura)
-        birth_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(45))
-        
-        self.birth_date_input = TextInput(
-            hint_text='DD/MM/AAAA',
-            multiline=False,
-            font_size='16sp',
-            size_hint_x=0.35,
-            background_color=(0.95, 0.95, 0.95, 1),
-            foreground_color=(0.2, 0.2, 0.2, 1)
-        )
-        # Validação para data: só aceita números e /
-        def validate_date(text, from_undo):
-            return all(c.isdigit() or c == '/' for c in text)
-        self.birth_date_input.bind(text=lambda instance, value: setattr(instance, 'text', ''.join(c for c in value if c.isdigit() or c == '/')))
-        birth_layout.add_widget(self.birth_date_input)
-        
-        # Espaçador para manter o campo à esquerda
-        birth_layout.add_widget(Widget(size_hint_x=0.65))
-        
-        white_area.add_widget(birth_layout)
-        
-        white_area.add_widget(Widget(size_hint_y=None, height=dp(15)))
-        
-        # Phone Number Field
-        phone_label = Label(
-            text='Telemóvel:',
-            font_size='16sp',
-            size_hint_y=None,
-            height=dp(25),
-            color=(0/255, 77/255, 122/255, 1),
-            halign='left'
-        )
-        phone_label.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
-        white_area.add_widget(phone_label)
-        
-        phone_layout = BoxLayout(orientation='horizontal', spacing=dp(10), size_hint_y=None, height=dp(45))
-        
-        self.country_code_input = TextInput(
-            hint_text='+351',
-            text='+351',
-            multiline=False,
-            font_size='16sp',
-            size_hint_x=0.25,
-            background_color=(0.95, 0.95, 0.95, 1),
-            foreground_color=(0.2, 0.2, 0.2, 1)
-        )
-        phone_layout.add_widget(self.country_code_input)
-        
-        self.phone_input = TextInput(
-            hint_text='123 456 789',
-            multiline=False,
-            font_size='16sp',
-            size_hint_x=0.75,
-            background_color=(0.95, 0.95, 0.95, 1),
-            foreground_color=(0.2, 0.2, 0.2, 1)
-        )
-        phone_layout.add_widget(self.phone_input)
-        
-        white_area.add_widget(phone_layout)
-        
-        white_area.add_widget(Widget(size_hint_y=None, height=dp(15)))
-        
-        # Email Field
-        email_label = Label(
-            text='Email:',
-            font_size='16sp',
-            size_hint_y=None,
-            height=dp(25),
-            color=(0/255, 77/255, 122/255, 1),
-            halign='left'
-        )
-        email_label.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
-        white_area.add_widget(email_label)
-        
-        self.email_input = TextInput(
-            hint_text='example@email.com',
+        # Contact input field below
+        self.contact_input = TextInput(
+            hint_text='example@email.com or +351 123 456 789',
             multiline=False,
             font_size='16sp',
             size_hint_y=None,
-            height=dp(45),
+            height=dp(50),
             background_color=(0.95, 0.95, 0.95, 1),
             foreground_color=(0.2, 0.2, 0.2, 1)
         )
-        white_area.add_widget(self.email_input)
-        
-        # Manter compatibilidade - contact_input agora retorna email
-        self.contact_input = self.email_input
+        white_area.add_widget(self.contact_input)
         
         # Espaçador
         white_area.add_widget(Widget(size_hint_y=None, height=dp(30)))
@@ -349,28 +260,10 @@ class ContactPinScreen(Screen):
         self.add_widget(main_layout)
 
     def confirm_booking(self, instance):
-        # Get all form fields
-        birth_date = self.birth_date_input.text.strip()
-        country_code = self.country_code_input.text.strip()
-        phone = self.phone_input.text.strip()
-        email = self.email_input.text.strip()
-        
-        # Validate fields
-        if not birth_date:
-            self.show_error_popup("Por favor, insira a data de nascimento")
+        contact = self.contact_input.text.strip()
+        if not contact:
+            self.show_error_popup("Please enter a valid contact")
             return
-        
-        if not phone:
-            self.show_error_popup("Por favor, insira o número de telemóvel")
-            return
-        
-        if not email:
-            self.show_error_popup("Por favor, insira o email")
-            return
-        
-        # Combine contact info
-        full_phone = f"{country_code} {phone}"
-        contact = f"{email} | {full_phone} | {birth_date}" 
             
         selected_locker = getattr(self.manager, 'selected_locker', None)
         
