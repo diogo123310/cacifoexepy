@@ -3,17 +3,20 @@ from kivy.uix.widget import Widget
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
+from kivy.uix.spinner import Spinner, SpinnerOption
 from kivy.uix.screenmanager import Screen
-from kivy.graphics import Color, RoundedRectangle
+from kivy.graphics import Color, RoundedRectangle, Rectangle
 from kivy.metrics import dp
 from kivy.uix.image import Image, AsyncImage
 from kivy.uix.popup import Popup
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.clock import Clock
 from translations import translator
+from notification_service import notification_service
 import threading
 import time
 import random
+from datetime import datetime
 
 
 class ImageButton(ButtonBehavior, AsyncImage):
@@ -129,7 +132,80 @@ class ContactPinFooter(BoxLayout):
             app.root.update_all_translations()
         print(f"Language changed to: {language_code}")
 
+class StyledSpinner(Spinner):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        
+        # Cores customizadas
+        self.bg_color = (240/255, 242/255, 245/255, 1)  # Cinzento claro do sistema
+        self.text_color = (0/255, 77/255, 122/255, 1)  # Azul escuro do sistema
+        self.border_radius = [dp(8)]
+        
+        # Aplicar canvas customizado para forçar cor de fundo
+        with self.canvas.before:
+            Color(*self.bg_color)
+            self.rect = RoundedRectangle(pos=self.pos, size=self.size, radius=self.border_radius)
+        self.bind(pos=self._update_rect, size=self._update_rect)
+        
+        # Aplicar cores
+        self.color = self.text_color
+        self.background_color = (0, 0, 0, 0)  # Transparente para usar o canvas customizado
+        
+        # Customizar a aparência quando aberto
+        self.option_cls = 'StyledSpinnerOption'
+    
+    def _update_rect(self, instance, value):
+        self.rect.pos = self.pos
+        self.rect.size = self.size
+
+class StyledSpinnerOption(SpinnerOption):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        
+        # Cores customizadas
+        self.bg_color = (240/255, 242/255, 245/255, 1)  # Cinzento claro do sistema
+        self.text_color = (0/255, 77/255, 122/255, 1)  # Azul escuro do sistema
+        
+        # Aplicar canvas customizado
+        with self.canvas.before:
+            Color(*self.bg_color)
+            self.rect = Rectangle(pos=self.pos, size=self.size)
+        self.bind(pos=self._update_rect, size=self._update_rect)
+        
+        # Aplicar cores
+        self.color = self.text_color
+        self.background_color = (0, 0, 0, 0)  # Transparente para usar o canvas customizado
+    
+    def _update_rect(self, instance, value):
+        self.rect.pos = self.pos
+        self.rect.size = self.size
+
 class StyledButton(Button):
+    def __init__(self, text, button_type='primary', **kwargs):
+        super().__init__(**kwargs)
+        self.text = text
+        self.size_hint_y = None
+        self.height = dp(50)
+        self.border_radius = [dp(8)]
+        
+        if button_type == 'primary':
+            self.bg_color = (1, 204/255, 0, 1)  # Yellow like the cards
+            self.text_color = (0/255, 77/255, 122/255, 1)  # Dark blue text
+        else:  # secondary
+            self.bg_color = (240/255, 242/255, 245/255, 1)  # Light grey
+            self.text_color = (0.4, 0.4, 0.4, 1)  # Grey text
+        
+        with self.canvas.before:
+            Color(*self.bg_color)
+            self.rect = RoundedRectangle(pos=self.pos, size=self.size, radius=self.border_radius)
+        self.bind(pos=self._update_rect, size=self._update_rect)
+        
+        self.color = self.text_color
+        self.background_color = (0, 0, 0, 0)  # Transparent to use custom background
+
+    def _update_rect(self, instance, value):
+        self.rect.pos = self.pos
+        self.rect.size = self.size
     def __init__(self, text, button_type='primary', **kwargs):
         super().__init__(**kwargs)
         self.text = text
@@ -194,38 +270,155 @@ class ContactPinScreen(Screen):
         white_area.add_widget(self.title_label)
         
         # Espaçador
-        white_area.add_widget(Widget(size_hint_y=None, height=dp(40)))
+        white_area.add_widget(Widget(size_hint_y=None, height=dp(30)))
         
-        # "Contact:" aligned to the left
-        self.contact_title = Label(
-            text=translator.get_text("contact_label"),
+        # Nome section
+        self.name_title = Label(
+            text=translator.get_text('name_label'),
             font_size='18sp',
             size_hint_y=None,
             height=dp(30),
             color=(0/255, 77/255, 122/255, 1),
             halign='left'
         )
-        self.contact_title.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
-        white_area.add_widget(self.contact_title)
+        self.name_title.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
+        white_area.add_widget(self.name_title)
         
-        # Contact input field below
-        self.contact_input = TextInput(
-            hint_text='example@email.com or +351 123 456 789',
+        self.name_input = TextInput(
+            hint_text=translator.get_text('name_placeholder'),
             multiline=False,
             font_size='16sp',
             size_hint_y=None,
             height=dp(50),
-            background_color=(0.95, 0.95, 0.95, 1),
-            foreground_color=(0.2, 0.2, 0.2, 1)
+            background_color=(240/255, 242/255, 245/255, 1),  # Cinzento claro do sistema
+            foreground_color=(0/255, 77/255, 122/255, 1)  # Azul escuro do sistema
         )
-        white_area.add_widget(self.contact_input)
+        white_area.add_widget(self.name_input)
         
         # Espaçador
-        white_area.add_widget(Widget(size_hint_y=None, height=dp(30)))
+        white_area.add_widget(Widget(size_hint_y=None, height=dp(20)))
+        
+        # Email section
+        self.email_title = Label(
+            text=translator.get_text('email_label'),
+            font_size='18sp',
+            size_hint_y=None,
+            height=dp(30),
+            color=(0/255, 77/255, 122/255, 1),
+            halign='left'
+        )
+        self.email_title.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
+        white_area.add_widget(self.email_title)
+        
+        self.email_input = TextInput(
+            hint_text=translator.get_text('email_placeholder'),
+            multiline=False,
+            font_size='16sp',
+            size_hint_y=None,
+            height=dp(50),
+            background_color=(240/255, 242/255, 245/255, 1),  # Cinzento claro do sistema
+            foreground_color=(0/255, 77/255, 122/255, 1)  # Azul escuro do sistema
+        )
+        white_area.add_widget(self.email_input)
+        
+        # Espaçador
+        white_area.add_widget(Widget(size_hint_y=None, height=dp(20)))
+        
+        # Número de telemóvel section
+        self.phone_title = Label(
+            text=translator.get_text('phone_label'),
+            font_size='18sp',
+            size_hint_y=None,
+            height=dp(30),
+            color=(0/255, 77/255, 122/255, 1),
+            halign='left'
+        )
+        self.phone_title.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
+        white_area.add_widget(self.phone_title)
+        
+        # Container horizontal para indicativo e número
+        phone_container = BoxLayout(orientation='horizontal', spacing=dp(10), size_hint_y=None, height=dp(50))
+        
+        # Spinner para indicativo
+        self.country_code_spinner = StyledSpinner(
+            text='+351',
+            values=['+351', '+34', '+33', '+49', '+44', '+39', '+1', '+55'],
+            size_hint_x=0.3,
+            font_size='16sp'
+        )
+        phone_container.add_widget(self.country_code_spinner)
+        
+        # Input para número de telemóvel
+        self.phone_input = TextInput(
+            hint_text=translator.get_text('phone_placeholder'),
+            multiline=False,
+            font_size='16sp',
+            size_hint_x=0.7,
+            background_color=(240/255, 242/255, 245/255, 1),  # Cinzento claro do sistema
+            foreground_color=(0/255, 77/255, 122/255, 1),  # Azul escuro do sistema
+            input_filter='int'
+        )
+        phone_container.add_widget(self.phone_input)
+        
+        white_area.add_widget(phone_container)
+        
+        # Espaçador
+        white_area.add_widget(Widget(size_hint_y=None, height=dp(20)))
+        
+        # Data de nascimento section
+        self.birth_title = Label(
+            text=translator.get_text('birth_date_label'),
+            font_size='18sp',
+            size_hint_y=None,
+            height=dp(30),
+            color=(0/255, 77/255, 122/255, 1),
+            halign='left'
+        )
+        self.birth_title.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
+        white_area.add_widget(self.birth_title)
+        
+        # Container horizontal para dia, mês e ano
+        birth_container = BoxLayout(orientation='horizontal', spacing=dp(10), size_hint_y=None, height=dp(50))
+        
+        # Spinner para dia
+        days = [str(i).zfill(2) for i in range(1, 32)]
+        self.day_spinner = StyledSpinner(
+            text=translator.get_text('day_placeholder'),
+            values=days,
+            size_hint_x=0.33,
+            font_size='16sp'
+        )
+        birth_container.add_widget(self.day_spinner)
+        
+        # Spinner para mês
+        months = [str(i).zfill(2) for i in range(1, 13)]
+        self.month_spinner = StyledSpinner(
+            text=translator.get_text('month_placeholder'),
+            values=months,
+            size_hint_x=0.33,
+            font_size='16sp'
+        )
+        birth_container.add_widget(self.month_spinner)
+        
+        # Spinner para ano
+        current_year = datetime.now().year
+        years = [str(i) for i in range(current_year - 100, current_year - 10)]
+        self.year_spinner = StyledSpinner(
+            text=translator.get_text('year_placeholder'),
+            values=years,
+            size_hint_x=0.34,
+            font_size='16sp'
+        )
+        birth_container.add_widget(self.year_spinner)
+        
+        white_area.add_widget(birth_container)
+        
+        # Espaçador
+        white_area.add_widget(Widget(size_hint_y=None, height=dp(20)))
         
         # Instrução
         self.instruction_label = Label(
-            text=translator.get_text("contact_instruction"),
+            text=translator.get_text('fill_all_fields'),
             font_size='16sp',
             size_hint_y=None,
             height=dp(40),
@@ -260,10 +453,47 @@ class ContactPinScreen(Screen):
         self.add_widget(main_layout)
 
     def confirm_booking(self, instance):
-        contact = self.contact_input.text.strip()
-        if not contact:
-            self.show_error_popup("Please enter a valid contact")
+        # Obter dados dos novos campos
+        name = self.name_input.text.strip()
+        email = self.email_input.text.strip()
+        country_code = self.country_code_spinner.text
+        phone_number = self.phone_input.text.strip()
+        day = self.day_spinner.text
+        month = self.month_spinner.text
+        year = self.year_spinner.text
+        
+        # Validações
+        if not name:
+            self.show_error_popup(translator.get_text("invalid_name"))
             return
+            
+        if not email:
+            self.show_error_popup(translator.get_text("invalid_email"))
+            return
+            
+        if '@' not in email or '.' not in email:
+            self.show_error_popup(translator.get_text("invalid_email"))
+            return
+            
+        if not phone_number:
+            self.show_error_popup(translator.get_text("invalid_phone"))
+            return
+            
+        if day == translator.get_text('day_placeholder') or month == translator.get_text('month_placeholder') or year == translator.get_text('year_placeholder'):
+            self.show_error_popup(translator.get_text("invalid_birth_date"))
+            return
+        
+        # Construir contact string (usar email como principal)
+        full_phone = f"{country_code} {phone_number}"
+        contact = email  # Usar email como contact principal
+        
+        # Preparar dados do utilizador para notificações
+        user_data = {
+            'name': name,
+            'email': email,
+            'phone': full_phone,
+            'birth_date': f"{day}/{month}/{year}"
+        }
             
         selected_locker = getattr(self.manager, 'selected_locker', None)
         
@@ -278,7 +508,7 @@ class ContactPinScreen(Screen):
         
         if db:
             # Try to book the locker in the database - PIN será gerado automaticamente
-            success = db.book_locker(selected_locker, contact)
+            success = db.book_locker(selected_locker, contact, user_data=user_data)
             
             if success and success.get('success', False):
                 # Obter PIN gerado automaticamente
@@ -292,8 +522,20 @@ class ContactPinScreen(Screen):
                     else:
                         print(f'Error sending pulse to locker {selected_locker}')
                 
-                # Show success popup with generated PIN
-                self.show_success_popup(selected_locker, contact, generated_pin)
+                # 🔔 ENVIAR NOTIFICAÇÕES COM PIN
+                print(f"📧📱 Enviando notificações para {user_data['name']}...")
+                notification_results = notification_service.send_pin_notification(
+                    user_data=user_data,
+                    locker_number=selected_locker,
+                    pin=generated_pin,
+                    notification_methods=['email', 'sms']
+                )
+                
+                print(f"📧 Email: {'✅ Enviado' if notification_results['email'] else '❌ Falhou'}")
+                print(f"📱 SMS: {'✅ Enviado' if notification_results['sms'] else '❌ Falhou'}")
+                
+                # Show success popup with generated PIN and notification status
+                self.show_success_popup(selected_locker, contact, generated_pin, notification_results)
             else:
                 error_msg = success.get('message', f'Error booking locker {selected_locker}') if success else f'Error booking locker {selected_locker}'
                 self.show_error_popup(error_msg)
@@ -302,7 +544,7 @@ class ContactPinScreen(Screen):
             if hasattr(self.manager, 'gpio_controller') and self.manager.gpio_controller and self.manager.gpio_controller.db:
                 # Usar a database mesmo em modo simulação
                 db_fallback = self.manager.gpio_controller.db
-                success = db_fallback.book_locker(selected_locker, contact)
+                success = db_fallback.book_locker(selected_locker, contact, user_data=user_data)
                 if success and success.get('success', False):
                     generated_pin = success.get('pin', '0000')
                     print(f'Database booking in simulation - Locker: {selected_locker}, Contact: {contact}, PIN: {generated_pin}')
@@ -312,8 +554,20 @@ class ContactPinScreen(Screen):
                         self.manager.gpio_controller.pulse_locker_unlock(selected_locker, 0.02)
                         print(f'20ms pulse sent to locker {selected_locker} (simulation mode)')
                     
+                    # 🔔 ENVIAR NOTIFICAÇÕES COM PIN (modo simulação)
+                    print(f"📧📱 Enviando notificações para {user_data['name']} (simulação)...")
+                    notification_results = notification_service.send_pin_notification(
+                        user_data=user_data,
+                        locker_number=selected_locker,
+                        pin=generated_pin,
+                        notification_methods=['email', 'sms']
+                    )
+                    
+                    print(f"📧 Email: {'✅ Enviado' if notification_results['email'] else '❌ Falhou'}")
+                    print(f"📱 SMS: {'✅ Enviado' if notification_results['sms'] else '❌ Falhou'}")
+                    
                     # Show success popup
-                    self.show_success_popup(selected_locker, contact, generated_pin)
+                    self.show_success_popup(selected_locker, contact, generated_pin, notification_results)
                 else:
                     error_msg = success.get('message', f'Error booking locker {selected_locker}') if success else f'Error booking locker {selected_locker}'
                     self.show_error_popup(error_msg)
@@ -328,10 +582,22 @@ class ContactPinScreen(Screen):
                     self.manager.gpio_controller.pulse_locker_unlock(selected_locker, 0.02)
                     print(f'20ms pulse sent to locker {selected_locker} (full simulation mode)')
                 
+                # 🔔 ENVIAR NOTIFICAÇÕES COM PIN (simulação completa)
+                print(f"📧📱 Enviando notificações para {user_data['name']} (simulação completa)...")
+                notification_results = notification_service.send_pin_notification(
+                    user_data=user_data,
+                    locker_number=selected_locker,
+                    pin=generated_pin,
+                    notification_methods=['email', 'sms']
+                )
+                
+                print(f"📧 Email: {'✅ Enviado' if notification_results['email'] else '❌ Falhou'}")
+                print(f"📱 SMS: {'✅ Enviado' if notification_results['sms'] else '❌ Falhou'}")
+                
                 # Show success popup
-                self.show_success_popup(selected_locker, contact, generated_pin)
+                self.show_success_popup(selected_locker, contact, generated_pin, notification_results)
     
-    def show_success_popup(self, locker_number, contact, pin):
+    def show_success_popup(self, locker_number, contact, pin, notification_results=None):
         """Show confirmation popup with real-time monitoring"""
         
         # Popup layout
@@ -366,7 +632,29 @@ class ContactPinScreen(Screen):
         
 • Locker: {locker_number}
 • Contact: {contact}
-• PIN: [color=FF4136][b]{pin}[/b][/color]
+• PIN: [color=FF4136][b]{pin}[/b][/color]'''
+
+        # Adicionar status das notificações se disponível
+        if notification_results:
+            info_text += f"\n\n[b]📬 Notifications:[/b]"
+            
+            # Status do email
+            if notification_results.get('email'):
+                info_text += f"\n• 📧 Email: [color=2ECC40][b]✅ Sent[/b][/color]"
+            else:
+                info_text += f"\n• 📧 Email: [color=FF851B][b]⚠️ Not configured[/b][/color]"
+            
+            # Status do SMS
+            if notification_results.get('sms'):
+                info_text += f"\n• 📱 SMS: [color=2ECC40][b]✅ Sent[/b][/color]"
+            else:
+                info_text += f"\n• 📱 SMS: [color=FF851B][b]⚠️ Service unavailable[/b][/color]"
+            
+            # Adicionar nota sobre configuração
+            info_text += f"\n\n[color=AAAAAA][size=12sp]💡 To enable notifications:[/size][/color]"
+            info_text += f"\n[color=AAAAAA][size=12sp]Configure email/SMS in config_notifications.py[/size][/color]"
+        
+        info_text += f'''
 
 [color=FF851B][b]⚠️ INSTRUCTIONS:[/b][/color]
         
@@ -582,18 +870,47 @@ when the locker is closed[/color]'''
     
     def update_translations(self):
         """Update all translatable text elements"""
-                # Reset contact input field
+        # Reset input fields
         print("========== RESET FORM CALLED in update_translations ==========")
-        if hasattr(self, 'contact_input'):
-            self.contact_input.text = ''
-            self.contact_input.focus = False
-            print("Contact input cleared!")
+        if hasattr(self, 'name_input'):
+            self.name_input.text = ''
+        if hasattr(self, 'email_input'):
+            self.email_input.text = ''
+        if hasattr(self, 'phone_input'):
+            self.phone_input.text = ''
         
+        # Update header and main title
         self.header.update_translations()
         self.title_label.text = f'[b]{translator.get_text("book_locker_title")}[/b]'
-        self.contact_title.text = translator.get_text("contact_label")
-        self.contact_input.hint_text = translator.get_text("contact_hint")
-        self.instruction_label.text = translator.get_text("contact_instruction")
+        
+        # Update field labels
+        if hasattr(self, 'name_title'):
+            self.name_title.text = translator.get_text("name_label")
+        if hasattr(self, 'email_title'):
+            self.email_title.text = translator.get_text("email_label")
+        if hasattr(self, 'phone_title'):
+            self.phone_title.text = translator.get_text("phone_label")
+        if hasattr(self, 'birth_title'):
+            self.birth_title.text = translator.get_text("birth_date_label")
+        
+        # Update field placeholders
+        if hasattr(self, 'name_input'):
+            self.name_input.hint_text = translator.get_text("name_placeholder")
+        if hasattr(self, 'email_input'):
+            self.email_input.hint_text = translator.get_text("email_placeholder")
+        if hasattr(self, 'phone_input'):
+            self.phone_input.hint_text = translator.get_text("phone_placeholder")
+        
+        # Update spinner placeholders
+        if hasattr(self, 'day_spinner'):
+            self.day_spinner.text = translator.get_text("day_placeholder")
+        if hasattr(self, 'month_spinner'):
+            self.month_spinner.text = translator.get_text("month_placeholder")
+        if hasattr(self, 'year_spinner'):
+            self.year_spinner.text = translator.get_text("year_placeholder")
+        
+        # Update instruction text
+        self.instruction_label.text = translator.get_text("fill_all_fields")
         
         # Update button texts
         if hasattr(self, 'back_button'):

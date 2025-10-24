@@ -109,6 +109,80 @@ class TranslationManager:
                 'it': 'Visualizza le nostre tariffe e piani.',
                 'pl': 'Zobacz nasze stawki i plany.'
             },
+            'pricing_subtitle': {
+                'pt': 'POUPE DINHEIRO: PAGUE POR CACIFO, NÃO POR MALA!',
+                'en': 'SAVE MONEY: PAY PER LOCKER, NOT PER BAG!',
+                'es': '¡AHORRE DINERO: PAGUE POR CASILLERO, NO POR BOLSA!',
+                'fr': 'ÉCONOMISEZ: PAYEZ PAR CASIER, PAS PAR SAC!',
+                'de': 'GELD SPAREN: ZAHLEN SIE PRO SCHLIEFACH, NICHT PRO TASCHE!',
+                'it': 'RISPARMIA: PAGA PER ARMADIETTO, NON PER BORSA!',
+                'pl': 'OSZCZĘDZAJ: PŁAĆ ZA SZAFKĘ, NIE ZA TORBĘ!'
+            },
+            
+            # === HOW IT WORKS ===
+            'how_it_works_subtitle': {
+                'pt': 'Siga estes passos simples para usar o nosso sistema:',
+                'en': 'Follow these simple steps to use our system:',
+                'es': 'Siga estos pasos simples para usar nuestro sistema:',
+                'fr': 'Suivez ces étapes simples pour utiliser notre système:',
+                'de': 'Befolgen Sie diese einfachen Schritte, um unser System zu nutzen:',
+                'it': 'Segui questi semplici passaggi per utilizzare il nostro sistema:',
+                'pl': 'Wykonaj te proste kroki, aby korzystać z naszego systemu:'
+            },
+            'step1_title': {
+                'pt': 'Reserve o seu cacifo',
+                'en': 'Book your locker',
+                'es': 'Reserve su casillero',
+                'fr': 'Réservez votre casier',
+                'de': 'Buchen Sie Ihr Schließfach',
+                'it': 'Prenota il tuo armadietto',
+                'pl': 'Zarezerwuj swoją szafkę'
+            },
+            'step1_description': {
+                'pt': 'No local: Use o ecrã táctil no local de armazenamento para fazer a sua reserva.\nPague: Complete o pagamento com cartão de crédito.',
+                'en': 'On-site: Use the touchscreen at the storage location to make your booking.\nPay: Complete the payment with a credit card.',
+                'es': 'En el sitio: Use la pantalla táctil en la ubicación de almacenamiento para hacer su reserva.\nPague: Complete el pago con tarjeta de crédito.',
+                'fr': 'Sur place: Utilisez l\'écran tactile à l\'emplacement de stockage pour faire votre réservation.\nPayez: Complétez le paiement avec une carte de crédit.',
+                'de': 'Vor Ort: Verwenden Sie den Touchscreen am Lagerort, um Ihre Buchung vorzunehmen.\nBezahlen: Schließen Sie die Zahlung mit einer Kreditkarte ab.',
+                'it': 'In loco: Usa il touchscreen nella posizione di stoccaggio per effettuare la prenotazione.\nPaga: Completa il pagamento con una carta di credito.',
+                'pl': 'Na miejscu: Użyj ekranu dotykowego w lokalizacji przechowywania, aby dokonać rezerwacji.\nZapłać: Dokończ płatność kartą kredytową.'
+            },
+            'step2_title': {
+                'pt': 'Deposite a sua bagagem',
+                'en': 'Deposit your baggage',
+                'es': 'Deposite su equipaje',
+                'fr': 'Déposez vos bagages',
+                'de': 'Hinterlegen Sie Ihr Gepäck',
+                'it': 'Deposita i tuoi bagagli',
+                'pl': 'Złóż swój bagaż'
+            },
+            'step2_description': {
+                'pt': 'O sistema atribuir-lhe-á um cacifo e abrirá para si.\nColoque as suas malas dentro do cacifo e feche a porta.',
+                'en': 'The system will assign you a locker and open it for you.\nPlace your bags inside the locker and close the door.',
+                'es': 'El sistema le asignará un casillero y lo abrirá para usted.\nColoque sus bolsas dentro del casillero y cierre la puerta.',
+                'fr': 'Le système vous attribuera un casier et l\'ouvrira pour vous.\nPlacez vos sacs dans le casier et fermez la porte.',
+                'de': 'Das System weist Ihnen ein Schließfach zu und öffnet es für Sie.\nLegen Sie Ihre Taschen in das Schließfach und schließen Sie die Tür.',
+                'it': 'Il sistema ti assegnerà un armadietto e lo aprirà per te.\nMetti le tue borse all\'interno dell\'armadietto e chiudi la porta.',
+                'pl': 'System przydzieli Ci szafkę i otworzy ją dla Ciebie.\nWłóż swoje torby do szafki i zamknij drzwi.'
+            },
+            'step3_title': {
+                'pt': 'Reabra e retire a sua bagagem',
+                'en': 'Reopen and retrieve your baggage',
+                'es': 'Reabra y retire su equipaje',
+                'fr': 'Rouvrez et récupérez vos bagages',
+                'de': 'Öffnen Sie erneut und holen Sie Ihr Gepäck ab',
+                'it': 'Riapri e ritira i tuoi bagagli',
+                'pl': 'Otwórz ponownie i odbierz swój bagaż'
+            },
+            'step3_description': {
+                'pt': 'Para recolher as suas malas, use o seu smartphone ou o ecrã táctil no local e insira o seu código do cacifo.',
+                'en': 'To collect your bags, use your smartphone or the touchscreen at the location and enter your locker code.',
+                'es': 'Para recoger sus bolsas, use su smartphone o la pantalla táctil en la ubicación e ingrese su código de casillero.',
+                'fr': 'Pour récupérer vos sacs, utilisez votre smartphone ou l\'écran tactile à l\'emplacement et entrez votre code de casier.',
+                'de': 'Um Ihre Taschen abzuholen, verwenden Sie Ihr Smartphone oder den Touchscreen am Standort und geben Sie Ihren Schließfachcode ein.',
+                'it': 'Per ritirare le tue borse, usa il tuo smartphone o il touchscreen nella posizione e inserisci il codice del tuo armadietto.',
+                'pl': 'Aby odebrać swoje torby, użyj swojego smartfona lub ekranu dotykowego w lokalizacji i wprowadź kod swojej szafki.'
+            },
             
             # === LANGUAGE SELECTION ===
             'select_language': {
@@ -300,6 +374,143 @@ class TranslationManager:
                 'de': 'OK',
                 'it': 'OK',
                 'pl': 'OK'
+            },
+            
+            # === ADDITIONAL BOOKING FIELDS ===
+            'name_label': {
+                'pt': 'Nome:',
+                'en': 'Name:',
+                'es': 'Nombre:',
+                'fr': 'Nom:',
+                'de': 'Name:',
+                'it': 'Nome:',
+                'pl': 'Imię:'
+            },
+            'name_placeholder': {
+                'pt': 'Digite o seu nome completo',
+                'en': 'Enter your full name',
+                'es': 'Ingrese su nombre completo',
+                'fr': 'Entrez votre nom complet',
+                'de': 'Geben Sie Ihren vollständigen Namen ein',
+                'it': 'Inserisci il tuo nome completo',
+                'pl': 'Wprowadź swoje pełne imię'
+            },
+            'email_label': {
+                'pt': 'Email:',
+                'en': 'Email:',
+                'es': 'Correo:',
+                'fr': 'Email:',
+                'de': 'E-Mail:',
+                'it': 'Email:',
+                'pl': 'Email:'
+            },
+            'email_placeholder': {
+                'pt': 'exemplo@email.com',
+                'en': 'example@email.com',
+                'es': 'ejemplo@email.com',
+                'fr': 'exemple@email.com',
+                'de': 'beispiel@email.com',
+                'it': 'esempio@email.com',
+                'pl': 'przyklad@email.com'
+            },
+            'phone_label': {
+                'pt': 'Número de Telemóvel:',
+                'en': 'Phone Number:',
+                'es': 'Número de Teléfono:',
+                'fr': 'Numéro de Téléphone:',
+                'de': 'Telefonnummer:',
+                'it': 'Numero di Telefono:',
+                'pl': 'Numer Telefonu:'
+            },
+            'phone_placeholder': {
+                'pt': '123 456 789',
+                'en': '123 456 789',
+                'es': '123 456 789',
+                'fr': '123 456 789',
+                'de': '123 456 789',
+                'it': '123 456 789',
+                'pl': '123 456 789'
+            },
+            'birth_date_label': {
+                'pt': 'Data de Nascimento:',
+                'en': 'Date of Birth:',
+                'es': 'Fecha de Nacimiento:',
+                'fr': 'Date de Naissance:',
+                'de': 'Geburtsdatum:',
+                'it': 'Data di Nascita:',
+                'pl': 'Data Urodzenia:'
+            },
+            'day_placeholder': {
+                'pt': 'Dia',
+                'en': 'Day',
+                'es': 'Día',
+                'fr': 'Jour',
+                'de': 'Tag',
+                'it': 'Giorno',
+                'pl': 'Dzień'
+            },
+            'month_placeholder': {
+                'pt': 'Mês',
+                'en': 'Month',
+                'es': 'Mes',
+                'fr': 'Mois',
+                'de': 'Monat',
+                'it': 'Mese',
+                'pl': 'Miesiąc'
+            },
+            'year_placeholder': {
+                'pt': 'Ano',
+                'en': 'Year',
+                'es': 'Año',
+                'fr': 'Année',
+                'de': 'Jahr',
+                'it': 'Anno',
+                'pl': 'Rok'
+            },
+            'fill_all_fields': {
+                'pt': 'Preencha todos os campos para continuar. Será gerado um PIN para o seu cacifo.',
+                'en': 'Fill all fields to continue. A PIN will be generated for your locker.',
+                'es': 'Complete todos los campos para continuar. Se generará un PIN para su casillero.',
+                'fr': 'Remplissez tous les champs pour continuer. Un PIN sera généré pour votre casier.',
+                'de': 'Füllen Sie alle Felder aus, um fortzufahren. Eine PIN wird für Ihr Schließfach generiert.',
+                'it': 'Compila tutti i campi per continuare. Verrà generato un PIN per il tuo armadietto.',
+                'pl': 'Wypełnij wszystkie pola, aby kontynuować. PIN zostanie wygenerowany dla Twojej szafki.'
+            },
+            'invalid_name': {
+                'pt': 'Por favor, introduza um nome válido',
+                'en': 'Please enter a valid name',
+                'es': 'Por favor, introduzca un nombre válido',
+                'fr': 'Veuillez saisir un nom valide',
+                'de': 'Bitte geben Sie einen gültigen Namen ein',
+                'it': 'Inserisci un nome valido',
+                'pl': 'Wprowadź prawidłowe imię'
+            },
+            'invalid_email': {
+                'pt': 'Por favor, introduza um email válido',
+                'en': 'Please enter a valid email',
+                'es': 'Por favor, introduzca un email válido',
+                'fr': 'Veuillez saisir un email valide',
+                'de': 'Bitte geben Sie eine gültige E-Mail ein',
+                'it': 'Inserisci un email valido',
+                'pl': 'Wprowadź prawidłowy email'
+            },
+            'invalid_phone': {
+                'pt': 'Por favor, introduza um número de telefone válido',
+                'en': 'Please enter a valid phone number',
+                'es': 'Por favor, introduzca un número de teléfono válido',
+                'fr': 'Veuillez saisir un numéro de téléphone valide',
+                'de': 'Bitte geben Sie eine gültige Telefonnummer ein',
+                'it': 'Inserisci un numero di telefono valido',
+                'pl': 'Wprowadź prawidłowy numer telefonu'
+            },
+            'invalid_birth_date': {
+                'pt': 'Por favor, selecione uma data de nascimento válida',
+                'en': 'Please select a valid birth date',
+                'es': 'Por favor, seleccione una fecha de nacimiento válida',
+                'fr': 'Veuillez sélectionner une date de naissance valide',
+                'de': 'Bitte wählen Sie ein gültiges Geburtsdatum',
+                'it': 'Seleziona una data di nascita valida',
+                'pl': 'Wybierz prawidłową datę urodzenia'
             },
             
             # === UNLOCK SCREEN ===

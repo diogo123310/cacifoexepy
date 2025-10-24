@@ -68,6 +68,8 @@ HTML_TEMPLATE = """
         .booking-locker { font-weight: bold; color: #667eea; }
         .booking-contact { color: #28a745; }
         .booking-time { color: #6c757d; font-size: 0.9em; }
+        .contact-details { line-height: 1.4; }
+        .contact-details strong { margin-right: 5px; }
         
         @media (max-width: 768px) {
             .container { padding: 10px; }
@@ -113,7 +115,7 @@ HTML_TEMPLATE = """
                 <button class="btn secondary" onclick="loadActiveBookings()">🔴 Active Only</button>
                 <button class="btn success" onclick="loadRecentBookings()">📅 Recent (7 days)</button>
                 <button class="btn warning" onclick="loadStats()">📊 Detailed Stats</button>
-                <input type="text" class="search-box" id="searchContact" placeholder="Search by contact..." onkeypress="handleSearchKeyPress(event)">
+                <input type="text" class="search-box" id="searchContact" placeholder="Search by name, email, phone..." onkeypress="handleSearchKeyPress(event)">
                 <button class="btn" onclick="searchByContact()">🔍 Search</button>
                 <button class="btn secondary" onclick="exportData()">📄 Export CSV</button>
             </div>
@@ -225,7 +227,7 @@ HTML_TEMPLATE = """
         async function searchByContact() {
             const contact = document.getElementById('searchContact').value.trim();
             if (!contact) {
-                alert('Please enter a contact to search for');
+                alert('Please enter a name, email, or phone number to search for');
                 return;
             }
             currentEndpoint = `/api/bookings/contact/${encodeURIComponent(contact)}`;
@@ -257,9 +259,13 @@ HTML_TEMPLATE = """
                             <span class="status-badge status-${booking.status}">${booking.status}</span>
                         </div>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
-                            <div>
+                            <div class="contact-details">
                                 <strong>🔒 Locker:</strong> <span class="booking-locker">${booking.locker_number}</span><br>
-                                <strong>👤 Contact:</strong> <span class="booking-contact">${booking.contact}</span><br>
+                                ${booking.name ? `<strong>👤 Name:</strong> <span class="booking-contact">${booking.name}</span><br>` : ''}
+                                ${booking.email ? `<strong>📧 Email:</strong> <span class="booking-contact">${booking.email}</span><br>` : ''}
+                                ${booking.phone ? `<strong>📱 Phone:</strong> <span class="booking-contact">${booking.phone}</span><br>` : ''}
+                                ${booking.birth_date ? `<strong>🎂 Birth Date:</strong> <span class="booking-contact">${booking.birth_date}</span><br>` : ''}
+                                ${booking.contact && !booking.email ? `<strong>👤 Contact:</strong> <span class="booking-contact">${booking.contact}</span><br>` : ''}
                                 <strong>🔑 PIN:</strong> <span style="color: #e74c3c; font-weight: bold;">${booking.pin || 'N/A'}</span>
                             </div>
                             <div>
@@ -486,7 +492,7 @@ if __name__ == '__main__':
     print("   • GET /api/bookings - All bookings")
     print("   • GET /api/bookings/active - Active bookings") 
     print("   • GET /api/bookings/recent - Recent bookings")
-    print("   • GET /api/bookings/contact/<contact> - Search by contact")
+    print("   • GET /api/bookings/contact/<contact> - Search by name, email, or phone")
     print("   • GET /api/stats - System statistics")
     print("   • GET /api/export - Export CSV")
     print("   • GET /api/status - System status")

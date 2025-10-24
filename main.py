@@ -16,7 +16,11 @@ import time
 from homescreen import KioskHomeScreen, OptionCard
 from lockerscreens import FindLockersScreen, UnlockLockerScreen
 from contact_pin_screen import ContactPinScreen
+from pricing_screen import PricingScreen
+from how_it_works_screen import HowItWorksScreen
 from database import LockerDatabase
+from config_notifications import initialize_notifications
+from demo_mode import enable_demo_mode
 
 # GPIO imports - only import if running on Raspberry Pi
 try:
@@ -411,6 +415,14 @@ class MainScreenManager(ScreenManager):
         contact_pin_screen.gpio_controller = self.gpio_controller
         self.add_widget(contact_pin_screen)
         
+        # Criar a tela PricingScreen
+        pricing_screen = PricingScreen(name='pricing')
+        self.add_widget(pricing_screen)
+        
+        # Criar a tela HowItWorksScreen
+        how_it_works_screen = HowItWorksScreen(name='how_it_works')
+        self.add_widget(how_it_works_screen)
+        
         # Definir a tela inicial
         self.current = 'home'
     
@@ -450,6 +462,22 @@ class MainScreenManager(ScreenManager):
                 contact_pin_widget = contact_pin_screen.children[0]
                 if hasattr(contact_pin_widget, 'update_translations'):
                     contact_pin_widget.update_translations()
+        except:
+            pass
+        
+        # Atualizar tela Pricing
+        try:
+            pricing_screen = self.get_screen('pricing')
+            if hasattr(pricing_screen, 'update_translations'):
+                pricing_screen.update_translations()
+        except:
+            pass
+        
+        # Atualizar tela How It Works
+        try:
+            how_it_works_screen = self.get_screen('how_it_works')
+            if hasattr(how_it_works_screen, 'update_translations'):
+                how_it_works_screen.update_translations()
         except:
             pass
         
@@ -493,6 +521,16 @@ class LuggageKioskApp(App):
     def build(self):
         # Initialize GPIO when app starts
         initialize_gpio()
+        
+        # Initialize notification system
+        print("🔧 Inicializando sistema de notificações...")
+        initialize_notifications()
+        
+        # Enable demo mode for notifications (remove this line for production)
+        print("🎭 Ativando modo demonstração para notificações...")
+        enable_demo_mode()
+        print("✅ Notificações aparecerão como enviadas com sucesso")
+        
         self.screen_manager = MainScreenManager()
         return self.screen_manager
     

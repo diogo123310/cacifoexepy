@@ -362,13 +362,11 @@ class KioskHomeScreen(BoxLayout):
     
     def go_to_how_it_works(self, instance):
         print("Navigating to How It Works screen.")
-        # TODO: Implementar tela How It Works
-        pass
+        self.manager.current = 'how_it_works'
     
     def go_to_pricing(self, instance):
         print("Navigating to Pricing screen.")
-        # TODO: Implementar tela Pricing
-        pass
+        self.manager.current = 'pricing'
         
     def update_translations(self):
         """Update all text elements with current language translations"""

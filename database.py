@@ -46,12 +46,16 @@ class LockerDatabase:
                     )
                 ''')
                 
-                # Tabela para reservas/utilizações
+                # Tabela para reservas/utilizações (estrutura atualizada com dados de contacto separados)
                 cursor.execute('''
                     CREATE TABLE IF NOT EXISTS bookings (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         locker_number TEXT NOT NULL,
                         contact TEXT NOT NULL,
+                        name TEXT,
+                        email TEXT,
+                        phone TEXT,
+                        birth_date TEXT,
                         pin_hash TEXT NOT NULL,
                         pin_salt TEXT NOT NULL,
                         status TEXT NOT NULL DEFAULT 'active',
@@ -59,9 +63,36 @@ class LockerDatabase:
                         unlock_time DATETIME,
                         return_time DATETIME,
                         notes TEXT,
+                        pin_display TEXT,
                         FOREIGN KEY (locker_number) REFERENCES lockers (locker_number)
                     )
                 ''')
+                
+                # Migração: Adicionar colunas se não existirem (para bases de dados existentes)
+                try:
+                    cursor.execute("ALTER TABLE bookings ADD COLUMN name TEXT")
+                except sqlite3.OperationalError:
+                    pass  # Coluna já existe
+                
+                try:
+                    cursor.execute("ALTER TABLE bookings ADD COLUMN email TEXT")
+                except sqlite3.OperationalError:
+                    pass  # Coluna já existe
+                    
+                try:
+                    cursor.execute("ALTER TABLE bookings ADD COLUMN phone TEXT")
+                except sqlite3.OperationalError:
+                    pass  # Coluna já existe
+                    
+                try:
+                    cursor.execute("ALTER TABLE bookings ADD COLUMN birth_date TEXT")
+                except sqlite3.OperationalError:
+                    pass  # Coluna já existe
+                    
+                try:
+                    cursor.execute("ALTER TABLE bookings ADD COLUMN pin_display TEXT")
+                except sqlite3.OperationalError:
+                    pass  # Coluna já existe
                 
                 # Tabela para logs do sistema
                 cursor.execute('''
@@ -139,11 +170,40 @@ class LockerDatabase:
         # Se não encontrar, usar um PIN aleatório mesmo assim
         return f"{random.randint(1000, 9999):04d}"
     
-    def book_locker(self, locker_number: str, contact: str, pin: str = None) -> dict:
-        """Reserva um cacifo para um utilizador - gera novo PIN automaticamente se não fornecido"""
+    def book_locker(self, locker_number: str, contact: str = None, pin: str = None, user_data: dict = None) -> dict:
+        """Reserva um cacifo para um utilizador - gera novo PIN automaticamente se não fornecido
+        
+        Args:
+            locker_number: Número do cacifo
+            contact: Contacto principal (manter compatibilidade) - pode ser email ou texto
+            pin: PIN específico (opcional, gera automaticamente se não fornecido)
+            user_data: Dicionário com dados completos do utilizador:
+                      {'name': str, 'email': str, 'phone': str, 'birth_date': str}
+        """
         def operation():
             # Gerar novo PIN se não fornecido (antes da operação da database)
             generated_pin = pin if pin is not None else self.generate_new_pin()
+            
+            # Processar dados do utilizador
+            final_contact = contact  # Cópia local para poder modificar
+            if user_data:
+                name = user_data.get('name', '')
+                email = user_data.get('email', '')
+                phone = user_data.get('phone', '')
+                birth_date = user_data.get('birth_date', '')
+                # Se contact não foi fornecido mas temos email, usar email como contact
+                if not final_contact and email:
+                    final_contact = email
+                elif not final_contact and name:
+                    final_contact = name
+                elif not final_contact and phone:
+                    final_contact = phone
+            else:
+                name = email = phone = birth_date = ''
+            
+            # Garantir que contact tem um valor
+            if not final_contact:
+                final_contact = 'Unknown'
             
             conn = self._get_connection()
             try:
@@ -157,42 +217,48 @@ class LockerDatabase:
                 result = cursor.fetchone()
                 if not result:
                     return {"success": False, "message": "Cacifo não existe"}
-                
+
                 if result[0] != 'available':
                     return {"success": False, "message": "Cacifo não está disponível"}
-                
+
                 # Gerar hash do PIN
                 pin_hash, salt = self._hash_pin(generated_pin)
-                
+
                 # Iniciar transação
                 cursor.execute('BEGIN IMMEDIATE')
-                
-                # Criar reserva
+
+                # Criar reserva com dados completos
                 cursor.execute('''
-                    INSERT INTO bookings (locker_number, contact, pin_hash, pin_salt, pin_display, status)
-                    VALUES (?, ?, ?, ?, ?, 'booked')
-                ''', (locker_number, contact, pin_hash, salt, generated_pin))
-                
-                # Atualizar status do cacifo
+                    INSERT INTO bookings (locker_number, contact, name, email, phone, birth_date, pin_hash, pin_salt, pin_display, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'booked')
+                ''', (locker_number, final_contact, name, email, phone, birth_date, pin_hash, salt, generated_pin))                # Atualizar status do cacifo
                 cursor.execute('''
                     UPDATE lockers SET status = 'occupied', updated_at = CURRENT_TIMESTAMP
                     WHERE locker_number = ?
                 ''', (locker_number,))
                 
                 # Log da ação
+                log_details = f'Contact: {final_contact}'
+                if name:
+                    log_details += f', Name: {name}'
+                if email and email != final_contact:
+                    log_details += f', Email: {email}'
+                if phone:
+                    log_details += f', Phone: {phone}'
+                    
                 cursor.execute('''
                     INSERT INTO system_logs (locker_number, action, details)
                     VALUES (?, 'BOOKED', ?)
-                ''', (locker_number, f'Contact: {contact}'))
+                ''', (locker_number, log_details))
                 
                 conn.commit()
                 
-                print(f"Cacifo {locker_number} reservado com sucesso para {contact} - PIN: {generated_pin}")
+                print(f"Cacifo {locker_number} reservado com sucesso para {final_contact} - PIN: {generated_pin}")
                 return {
                     "success": True, 
                     "message": f"Cacifo {locker_number} reservado com sucesso",
                     "locker_number": locker_number,
-                    "contact": contact,
+                    "contact": final_contact,
                     "pin": generated_pin,  # Retornar o PIN gerado
                     "booking_id": cursor.lastrowid
                 }
@@ -430,7 +496,7 @@ class LockerDatabase:
                 cursor = conn.cursor()
                 query = '''
                     SELECT 
-                        id, locker_number, contact, status, 
+                        id, locker_number, contact, name, email, phone, birth_date, status, 
                         booking_time, unlock_time, return_time, notes, pin_display
                     FROM bookings 
                     ORDER BY booking_time DESC
@@ -447,12 +513,16 @@ class LockerDatabase:
                         'id': row[0],
                         'locker_number': row[1],
                         'contact': row[2],
-                        'status': row[3],
-                        'booking_time': row[4],
-                        'unlock_time': row[5],
-                        'return_time': row[6],
-                        'notes': row[7],
-                        'pin': row[8]
+                        'name': row[3],
+                        'email': row[4],
+                        'phone': row[5],
+                        'birth_date': row[6],
+                        'status': row[7],
+                        'booking_time': row[8],
+                        'unlock_time': row[9],
+                        'return_time': row[10],
+                        'notes': row[11],
+                        'pin': row[12]
                     })
                 return bookings
             finally:
@@ -468,7 +538,7 @@ class LockerDatabase:
                 cursor = conn.cursor()
                 cursor.execute('''
                     SELECT 
-                        id, contact, status, booking_time, 
+                        id, contact, name, email, phone, birth_date, status, booking_time, 
                         unlock_time, return_time, notes, pin_display
                     FROM bookings 
                     WHERE locker_number = ?
@@ -481,12 +551,16 @@ class LockerDatabase:
                     bookings.append({
                         'id': row[0],
                         'contact': row[1],
-                        'status': row[2],
-                        'booking_time': row[3],
-                        'unlock_time': row[4],
-                        'return_time': row[5],
-                        'notes': row[6],
-                        'pin': row[7]
+                        'name': row[2],
+                        'email': row[3],
+                        'phone': row[4],
+                        'birth_date': row[5],
+                        'status': row[6],
+                        'booking_time': row[7],
+                        'unlock_time': row[8],
+                        'return_time': row[9],
+                        'notes': row[10],
+                        'pin': row[11]
                     })
                 return bookings
             finally:
@@ -502,12 +576,12 @@ class LockerDatabase:
                 cursor = conn.cursor()
                 cursor.execute('''
                     SELECT 
-                        id, locker_number, contact, status, 
+                        id, locker_number, contact, name, email, phone, birth_date, status, 
                         booking_time, unlock_time, return_time, notes, pin_display
                     FROM bookings 
-                    WHERE contact LIKE ?
+                    WHERE contact LIKE ? OR name LIKE ? OR email LIKE ? OR phone LIKE ?
                     ORDER BY booking_time DESC
-                ''', (f'%{contact_search}%',))
+                ''', (f'%{contact_search}%', f'%{contact_search}%', f'%{contact_search}%', f'%{contact_search}%'))
                 
                 results = cursor.fetchall()
                 bookings = []
@@ -516,12 +590,16 @@ class LockerDatabase:
                         'id': row[0],
                         'locker_number': row[1],
                         'contact': row[2],
-                        'status': row[3],
-                        'booking_time': row[4],
-                        'unlock_time': row[5],
-                        'return_time': row[6],
-                        'notes': row[7],
-                        'pin': row[8]
+                        'name': row[3],
+                        'email': row[4],
+                        'phone': row[5],
+                        'birth_date': row[6],
+                        'status': row[7],
+                        'booking_time': row[8],
+                        'unlock_time': row[9],
+                        'return_time': row[10],
+                        'notes': row[11],
+                        'pin': row[12]
                     })
                 return bookings
             finally:
@@ -537,7 +615,7 @@ class LockerDatabase:
                 cursor = conn.cursor()
                 cursor.execute('''
                     SELECT 
-                        id, locker_number, contact, status, 
+                        id, locker_number, contact, name, email, phone, birth_date, status, 
                         booking_time, unlock_time, return_time, notes, pin_display
                     FROM bookings 
                     WHERE booking_time >= datetime('now', '-{} days')
@@ -551,12 +629,16 @@ class LockerDatabase:
                         'id': row[0],
                         'locker_number': row[1],
                         'contact': row[2],
-                        'status': row[3],
-                        'booking_time': row[4],
-                        'unlock_time': row[5],
-                        'return_time': row[6],
-                        'notes': row[7],
-                        'pin': row[8]
+                        'name': row[3],
+                        'email': row[4],
+                        'phone': row[5],
+                        'birth_date': row[6],
+                        'status': row[7],
+                        'booking_time': row[8],
+                        'unlock_time': row[9],
+                        'return_time': row[10],
+                        'notes': row[11],
+                        'pin': row[12]
                     })
                 return bookings
             finally:

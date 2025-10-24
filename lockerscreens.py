@@ -5,11 +5,13 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.textinput import TextInput
+from kivy.uix.spinner import Spinner
 from kivy.metrics import dp
 from kivy.graphics import Color, RoundedRectangle
 from kivy.properties import StringProperty, BooleanProperty
 from kivy.clock import Clock
 from translations import translator
+from datetime import datetime
 
 
 class StyledButton(Button):
@@ -447,8 +449,8 @@ class UnlockLockerScreen(BaseScreen):
             font_size='16sp',
             size_hint_y=None,
             height=dp(50),
-            background_color=(0.95, 0.95, 0.95, 1),
-            foreground_color=(0.2, 0.2, 0.2, 1)
+            background_color=(240/255, 242/255, 245/255, 1),  # Cinzento claro do sistema
+            foreground_color=(0/255, 77/255, 122/255, 1),  # Azul escuro do sistema
         )
         contact_section.add_widget(self.contact_input)
         
@@ -482,8 +484,8 @@ class UnlockLockerScreen(BaseScreen):
             font_size='16sp',
             size_hint_y=None,
             height=dp(50),
-            background_color=(0.95, 0.95, 0.95, 1),
-            foreground_color=(0.2, 0.2, 0.2, 1),
+            background_color=(240/255, 242/255, 245/255, 1),  # Cinzento claro do sistema
+            foreground_color=(0/255, 77/255, 122/255, 1),  # Azul escuro do sistema,
             input_filter='int'  # Only accepts numbers
         )
         pin_section.add_widget(self.pin_input)
@@ -803,8 +805,8 @@ class UnlockLockerScreen(BaseScreen):
             font_size='16sp',
             size_hint_y=None,
             height=dp(50),
-            background_color=(0.95, 0.95, 0.95, 1),
-            foreground_color=(0.2, 0.2, 0.2, 1)
+            background_color=(240/255, 242/255, 245/255, 1),  # Cinzento claro do sistema
+            foreground_color=(0/255, 77/255, 122/255, 1),  # Azul escuro do sistema
         )
         contact_section.add_widget(self.contact_input)
         
@@ -838,8 +840,8 @@ class UnlockLockerScreen(BaseScreen):
             font_size='16sp',
             size_hint_y=None,
             height=dp(50),
-            background_color=(0.95, 0.95, 0.95, 1),
-            foreground_color=(0.2, 0.2, 0.2, 1),
+            background_color=(240/255, 242/255, 245/255, 1),  # Cinzento claro do sistema
+            foreground_color=(0/255, 77/255, 122/255, 1),  # Azul escuro do sistema,
             input_filter='int'  # Only accepts numbers
         )
         pin_section.add_widget(self.pin_input)
