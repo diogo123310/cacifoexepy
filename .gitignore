@@ -5,12 +5,20 @@ __pycache__/
 *.pyd
 .Python
 
-# Database files (optional - uncomment if you don't want to version the database)
-# *.db
+# Database files - production data should not be versioned
+locker_system.db
+# Keep example database
+!locker_system_example.db
+
+# Backup files
+*.backup*
+*.bak
 
 # Test files (optional)
 test_*.py
 demo_notifications.py
+cleanup_database.py
+clean_db_direct.py
 
 # IDE files
 .vscode/
@@ -27,7 +35,3 @@ env/
 
 # Logs
 *.log
-
-# Backup files
-*.backup*
-*.bak
