@@ -1,0 +1,33 @@
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Database files (optional - uncomment if you don't want to version the database)
+# *.db
+
+# Test files (optional)
+test_*.py
+demo_notifications.py
+
+# IDE files
+.vscode/
+*.sublime-*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Logs
+*.log
+
+# Backup files
+*.backup*
+*.bak
