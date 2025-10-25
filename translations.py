@@ -616,7 +616,82 @@ class TranslationManager:
                 'es': 'Intentar de Nuevo',
                 'fr': 'Essayer à Nouveau',
                 'de': 'Erneut Versuchen',
-                'it': 'Riprova'
+                'it': 'Riprova',
+                'pl': 'Spróbuj Ponownie'
+            },
+            
+            # === ADDITIONAL PROFESSIONAL INTERFACE TRANSLATIONS ===
+            'error_title': {
+                'pt': 'Erro',
+                'en': 'Error',
+                'es': 'Error',
+                'fr': 'Erreur',
+                'de': 'Fehler',
+                'it': 'Errore',
+                'pl': 'Błąd'
+            },
+            'locker_unlocked': {
+                'pt': 'Cacifo Desbloqueado!',
+                'en': 'Locker Unlocked!',
+                'es': '¡Casillero Desbloqueado!',
+                'fr': 'Casier Déverrouillé!',
+                'de': 'Schließfach Entsperrt!',
+                'it': 'Armadietto Sbloccato!',
+                'pl': 'Szafka Odblokowana!'
+            },
+            'back_to_home': {
+                'pt': 'Voltar ao Início',
+                'en': 'Back to Home',
+                'es': 'Volver al Inicio',
+                'fr': 'Retour à l\'Accueil',
+                'de': 'Zurück zur Startseite',
+                'it': 'Torna alla Home',
+                'pl': 'Powrót do Strony Głównej'
+            },
+            'error_contact_pin_required': {
+                'pt': 'Contacto e PIN são obrigatórios',
+                'en': 'Contact and PIN are required',
+                'es': 'Contacto y PIN son obligatorios',
+                'fr': 'Contact et PIN sont requis',
+                'de': 'Kontakt und PIN sind erforderlich',
+                'it': 'Contatto e PIN sono obbligatori',
+                'pl': 'Kontakt i PIN są wymagane'
+            },
+            'error_pin_format': {
+                'pt': 'PIN deve ter 4 dígitos',
+                'en': 'PIN must have 4 digits',
+                'es': 'PIN debe tener 4 dígitos',
+                'fr': 'Le PIN doit avoir 4 chiffres',
+                'de': 'PIN muss 4 Ziffern haben',
+                'it': 'Il PIN deve avere 4 cifre',
+                'pl': 'PIN musi mieć 4 cyfry'
+            },
+            'error_incorrect_credentials': {
+                'pt': 'Contacto ou PIN incorreto',
+                'en': 'Incorrect contact or PIN',
+                'es': 'Contacto o PIN incorrecto',
+                'fr': 'Contact ou PIN incorrect',
+                'de': 'Falscher Kontakt oder PIN',
+                'it': 'Contatto o PIN errato',
+                'pl': 'Nieprawidłowy kontakt lub PIN'
+            },
+            'error_unlock_physical': {
+                'pt': 'Erro ao desbloquear fisicamente',
+                'en': 'Error unlocking physically',
+                'es': 'Error al desbloquear físicamente',
+                'fr': 'Erreur de déverrouillage physique',
+                'de': 'Fehler beim physischen Entsperren',
+                'it': 'Errore nello sblocco fisico',
+                'pl': 'Błąd odblokowania fizycznego'
+            },
+            'error_system_unavailable': {
+                'pt': 'Sistema indisponível',
+                'en': 'System unavailable',
+                'es': 'Sistema no disponible',
+                'fr': 'Système indisponible',
+                'de': 'System nicht verfügbar',
+                'it': 'Sistema non disponibile',
+                'pl': 'System niedostępny'
             }
         }
         

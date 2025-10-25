@@ -6,8 +6,8 @@ from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.textinput import TextInput
 from kivy.uix.spinner import Spinner
-from kivy.metrics import dp
-from kivy.graphics import Color, RoundedRectangle
+from kivy.metrics import dp, sp
+from kivy.graphics import Color, RoundedRectangle, Line
 from kivy.properties import StringProperty, BooleanProperty
 from kivy.clock import Clock
 from translations import translator
@@ -28,15 +28,125 @@ class StyledButton(Button):
         else:  # secondary
             self.bg_color = (0/255, 77/255, 122/255, 1)  # Blue
             self.text_color = (1, 1, 1, 1)  # White text
+
+
+class ProfessionalCard(BoxLayout):
+    """Professional card container with shadow and rounded corners"""
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.orientation = 'vertical'
+        self.size_hint_y = None
+        self.bind(minimum_height=self.setter('height'))
+        self.padding = [dp(25), dp(20)]
+        self.spacing = dp(20)
         
+        # Add card background with shadow effect
         with self.canvas.before:
-            Color(*self.bg_color)
-            self.rect = RoundedRectangle(pos=self.pos, size=self.size, radius=self.border_radius)
-        self.bind(pos=self._update_rect, size=self._update_rect)
+            Color(0.95, 0.95, 0.95, 1)  # Light gray shadow
+            self.shadow_rect = RoundedRectangle(
+                pos=(self.x + dp(2), self.y - dp(2)), 
+                size=self.size, 
+                radius=[dp(12)]
+            )
+            Color(1, 1, 1, 1)  # White card background
+            self.card_rect = RoundedRectangle(pos=self.pos, size=self.size, radius=[dp(12)])
         
-        self.color = self.text_color
-        self.background_color = (0, 0, 0, 0)  # Transparent to use custom background
-        self.bold = True
+        self.bind(pos=self._update_graphics, size=self._update_graphics)
+    
+    def _update_graphics(self, *args):
+        self.shadow_rect.pos = (self.x + dp(2), self.y - dp(2))
+        self.shadow_rect.size = self.size
+        self.card_rect.pos = self.pos
+        self.card_rect.size = self.size
+
+
+class IconTextField(BoxLayout):
+    """Professional text field with FontAwesome icon"""
+    def __init__(self, icon_unicode="", hint_text="", is_password=False, input_filter=None, **kwargs):
+        super().__init__(**kwargs)
+        self.orientation = 'horizontal'
+        self.size_hint_y = None
+        self.height = dp(60)
+        self.spacing = dp(12)
+        
+        # Icon container with blue background
+        icon_container = BoxLayout(size_hint_x=None, width=dp(50))
+        with icon_container.canvas.before:
+            Color(0/255, 77/255, 122/255, 1)  # Blue background
+            self.icon_bg = RoundedRectangle(pos=icon_container.pos, size=icon_container.size, radius=[dp(8)])
+        icon_container.bind(pos=self._update_icon_bg, size=self._update_icon_bg)
+        
+        # FontAwesome icon
+        icon_label = Label(
+            text=f'[font=FontAwesome]{icon_unicode}[/font]',
+            markup=True,
+            font_size=sp(20),
+            color=(1, 1, 1, 1),  # White text
+            halign='center',
+            valign='middle'
+        )
+        icon_container.add_widget(icon_label)
+        self.add_widget(icon_container)
+        
+        # Professional text input
+        self.text_input = TextInput(
+            hint_text=hint_text,
+            multiline=False,
+            password=is_password,
+            font_size=sp(18),
+            size_hint_y=None,
+            height=dp(50),
+            background_color=(1, 1, 1, 1),
+            foreground_color=(0/255, 77/255, 122/255, 1),
+            cursor_color=(1, 204/255, 0, 1),
+            selection_color=(1, 204/255, 0, 0.3),
+            padding=[dp(15), dp(12)]
+        )
+        
+        if input_filter:
+            self.text_input.input_filter = input_filter
+        
+        # Add professional border
+        with self.text_input.canvas.before:
+            Color(200/255, 200/255, 200/255, 1)
+            self.text_input.border_rect = RoundedRectangle(
+                pos=self.text_input.pos, 
+                size=self.text_input.size, 
+                radius=[dp(8)]
+            )
+        
+        self.text_input.bind(pos=self._update_border, size=self._update_border)
+        self.text_input.bind(focus=self._on_focus_change)
+        self.add_widget(self.text_input)
+    
+    def _update_border(self, *args):
+        self.text_input.border_rect.pos = self.text_input.pos
+        self.text_input.border_rect.size = self.text_input.size
+    
+    def _update_icon_bg(self, instance, value):
+        self.icon_bg.pos = instance.pos
+        self.icon_bg.size = instance.size
+    
+    def _on_focus_change(self, instance, focus):
+        """Change border color based on focus"""
+        if focus:
+            # Yellow border when focused
+            with self.text_input.canvas.before:
+                Color(1, 204/255, 0, 1)
+                self.text_input.border_rect = RoundedRectangle(
+                    pos=self.text_input.pos, 
+                    size=self.text_input.size, 
+                    radius=[dp(8)]
+                )
+        else:
+            # Gray border when not focused
+            with self.text_input.canvas.before:
+                Color(200/255, 200/255, 200/255, 1)
+                self.text_input.border_rect = RoundedRectangle(
+                    pos=self.text_input.pos, 
+                    size=self.text_input.size, 
+                    radius=[dp(8)]
+                )
 
     def _update_rect(self, instance, value):
         self.rect.pos = self.pos
@@ -412,136 +522,453 @@ class UnlockLockerScreen(BaseScreen):
     def __init__(self, manager, **kwargs):
         # Remove gpio_controller from kwargs before calling super()
         self.gpio_controller = kwargs.pop('gpio_controller', None)
-        super().__init__(manager, title=translator.get_text("unlock_locker_title"), **kwargs)
+        
+        # Initialize with empty content first
+        super().__init__(manager, title="Unlock Locker", **kwargs)
         
         # Database reference
         self.db = self.gpio_controller.db if self.gpio_controller else None
         
-        # Clear default content_area and recreate with less padding
-        self.remove_widget(self.content_area)
-        self.content_area = BoxLayout(orientation='vertical', padding=[dp(40), dp(10), dp(40), dp(10)], spacing=dp(20))
-        self.add_widget(self.content_area)
+        # Clear everything and rebuild professionally
+        self.clear_widgets()
+        self.create_professional_interface()
+    
+    def create_professional_interface(self):
+        """Create the complete professional interface with YELLOW BUTTONS and better positioning"""
+        # Main container with proper background
+        main_container = BoxLayout(orientation='vertical')
         
-        # Flexible spacer that takes 80% of available height
-        self.content_area.add_widget(Widget(size_hint_y=0.8))
+        # Main background
+        with main_container.canvas.before:
+            Color(248/255, 250/255, 252/255, 1)  # Light gray background
+            main_container.bg_rect = RoundedRectangle(pos=main_container.pos, size=main_container.size)
+        main_container.bind(pos=self._update_main_bg, size=self._update_main_bg)
+        
+        # HEADER with proper centering
+        header = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(70))
+        header.padding = [dp(20), dp(10)]
+        header.spacing = dp(15)
+        
+        # YELLOW Back button - positioned in top left corner
+        back_btn = Button(
+            text='[font=FontAwesome]\uf060[/font] Back',
+            markup=True,
+            font_size='16sp',
+            size_hint=(None, None),
+            size=(dp(120), dp(50)),
+            color=(0, 0, 0, 1),  # Black text
+            background_color=(0, 0, 0, 0)  # Transparent to use Canvas background
+        )
+        
+        # YELLOW background for back button
+        with back_btn.canvas.before:
+            Color(1, 204/255, 0, 1)  # Yellow background
+            back_btn.bg_rect = RoundedRectangle(
+                pos=back_btn.pos, 
+                size=back_btn.size, 
+                radius=[dp(8)]
+            )
+        back_btn.bind(pos=self._update_back_button_bg, size=self._update_back_button_bg)
+        back_btn.bind(on_press=self.go_back)
+        header.add_widget(back_btn)
+        
+        # Spacer to center title
+        header.add_widget(Widget(size_hint_x=1))
+        
+        # Title - perfectly centered
+        title_container = BoxLayout(orientation='vertical', size_hint=(None, None), size=(dp(250), dp(50)))
+        title_label = Label(
+            text='[b]Unlock Locker[/b]',
+            markup=True,
+            font_size='24sp',
+            color=(1, 1, 1, 1),
+            halign='center',
+            valign='middle'
+        )
+        title_label.bind(size=title_label.setter('text_size'))
+        title_container.add_widget(title_label)
+        header.add_widget(title_container)
+        
+        # Spacer to balance layout
+        header.add_widget(Widget(size_hint_x=1))
+        
+        # Header background - ONLY on the header
+        with header.canvas.before:
+            Color(0/255, 77/255, 122/255, 1)  # Professional blue
+            header.bg_rect = RoundedRectangle(pos=header.pos, size=header.size)
+        header.bind(pos=self._update_header_bg, size=self._update_header_bg)
+        
+        main_container.add_widget(header)
+        
+        # CONTENT AREA - remove negative padding and keep compact spacing
+        content_scroll = BoxLayout(orientation='vertical')
+        content_scroll.padding = [dp(40), dp(0)]  # safe, non-negative top padding
+        content_scroll.spacing = dp(5)  # small, consistent spacing
+        
+        # Hero section with icon and title - compact but not clipped
+        hero_section = BoxLayout(orientation='vertical', size_hint_y=None, spacing=dp(4))
+        hero_section.bind(minimum_height=hero_section.setter('height'))
+        
+        # Large icon - ensure not clipped
+        hero_icon = Label(
+            text='[font=FontAwesome]\uf09c[/font]',
+            markup=True,
+            font_size='60sp',  # Keep normal size
+            size_hint_y=None,
+            height=dp(70),  # Slightly taller to avoid clipping
+            color=(0/255, 77/255, 122/255, 1),
+            halign='center',
+            valign='middle'
+        )
+        hero_icon.bind(size=hero_icon.setter('text_size'))
+        hero_section.add_widget(hero_icon)
+        
+        # Main title - normal size and left aligned per feedback
+        hero_title = Label(
+            text='[size=32sp][b]Access Your Locker[/b][/size]',
+            markup=True,
+            size_hint_y=None,
+            height=dp(30),  # normal height
+            color=(0/255, 77/255, 122/255, 1),
+            halign='left',
+            valign='middle'
+        )
+        hero_title.bind(size=hero_title.setter('text_size'))
+        hero_section.add_widget(hero_title)
+        
+        # Subtitle with lock icon - normal size and left aligned
+        hero_subtitle = Label(
+            text='[font=FontAwesome]\uf023[/font] [size=16sp]Enter your booking details below to unlock your reserved locker[/size]',  # Tamanho mantido
+            markup=True,
+            size_hint_y=None,
+            height=dp(20),  # normal height
+            color=(100/255, 100/255, 100/255, 1),
+            halign='left',
+            valign='middle'
+        )
+        hero_subtitle.bind(size=hero_subtitle.setter('text_size'))
+        hero_section.add_widget(hero_subtitle)
+        
+        content_scroll.add_widget(hero_section)
+        # Remove extra spacer between hero and form to tighten layout
+        
+        # FORM CARD with better styling
+        form_card = ProfessionalCard()
+        form_card.size_hint_y = None
+        form_card.height = dp(280)  # Slightly reduced
+        form_card.padding = [dp(25), dp(20)]
+        form_card.spacing = dp(18)
         
         # Contact section
         contact_section = BoxLayout(orientation='vertical', spacing=dp(10), size_hint_y=None)
         contact_section.bind(minimum_height=contact_section.setter('height'))
         
-        # "Contact:" label
-        contact_title = Label(
-            text='Contact:',
-            font_size='20sp',
-            bold=True,
+        # Contact label with icon
+        contact_label = Label(
+            text='[font=FontAwesome]\uf0e0[/font] [b]Contact Information[/b]',
+            markup=True,
+            font_size='18sp',
             size_hint_y=None,
-            height=dp(30),
+            height=dp(28),
             color=(0/255, 77/255, 122/255, 1),
-            halign='left'
+            halign='left',
+            valign='middle'
         )
-        contact_title.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
-        contact_section.add_widget(contact_title)
+        contact_label.bind(size=contact_label.setter('text_size'))
+        contact_section.add_widget(contact_label)
         
-        # Contact input
-        self.contact_input = TextInput(
-            hint_text='example@email.com or +351 123 456 789',
-            multiline=False,
-            font_size='16sp',
-            size_hint_y=None,
-            height=dp(50),
-            background_color=(240/255, 242/255, 245/255, 1),  # Cinzento claro do sistema
-            foreground_color=(0/255, 77/255, 122/255, 1),  # Azul escuro do sistema
+        # Contact field - FUNCTIONAL input
+        self.contact_field = self.create_functional_input(
+            icon='\uf0e0',
+            placeholder='Email or phone number used for booking'
         )
-        contact_section.add_widget(self.contact_input)
-        
-        self.content_area.add_widget(contact_section)
-        
-        # Spacer
-        self.content_area.add_widget(Widget(size_hint_y=None, height=dp(30)))
+        contact_section.add_widget(self.contact_field)
+        form_card.add_widget(contact_section)
         
         # PIN section
         pin_section = BoxLayout(orientation='vertical', spacing=dp(10), size_hint_y=None)
         pin_section.bind(minimum_height=pin_section.setter('height'))
         
-        # "PIN:" label
-        pin_title = Label(
-            text='PIN (4 digits):',
-            font_size='20sp',
-            bold=True,
+        # PIN label with icon
+        pin_label = Label(
+            text='[font=FontAwesome]\uf292[/font] [b]Security PIN[/b]',
+            markup=True,
+            font_size='18sp',
             size_hint_y=None,
-            height=dp(30),
+            height=dp(28),
             color=(0/255, 77/255, 122/255, 1),
-            halign='left'
+            halign='left',
+            valign='middle'
         )
-        pin_title.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
-        pin_section.add_widget(pin_title)
+        pin_label.bind(size=pin_label.setter('text_size'))
+        pin_section.add_widget(pin_label)
         
-        # PIN input
-        self.pin_input = TextInput(
-            hint_text='Enter your 4-digit PIN',
+        # PIN field - FUNCTIONAL input with password
+        self.pin_field = self.create_functional_input(
+            icon='\uf292',
+            placeholder='Enter your 4-digit security PIN',
+            is_password=True,
+            input_filter='int'
+        )
+        pin_section.add_widget(self.pin_field)
+        form_card.add_widget(pin_section)
+        
+        # Unlock button section - MOVED DOWN
+        button_section = BoxLayout(orientation='vertical', size_hint_y=None, spacing=dp(12))
+        button_section.bind(minimum_height=button_section.setter('height'))
+        
+        # Add extra spacing to push button down
+        button_section.add_widget(Widget(size_hint_y=None, height=dp(40)))
+        
+        # YELLOW UNLOCK BUTTON!
+        self.unlock_button = Button(
+            text='[font=FontAwesome]\uf09c[/font] UNLOCK MY LOCKER',
+            markup=True,
+            font_size='20sp',
+            size_hint_y=None,
+            height=dp(60),
+            color=(0, 0, 0, 1),  # Black text on yellow
+            background_color=(0, 0, 0, 0)  # Transparent to use Canvas background
+        )
+        
+        # YELLOW background for unlock button
+        with self.unlock_button.canvas.before:
+            Color(1, 204/255, 0, 1)  # Yellow background
+            self.unlock_button.bg_rect = RoundedRectangle(
+                pos=self.unlock_button.pos, 
+                size=self.unlock_button.size, 
+                radius=[dp(8)]
+            )
+        self.unlock_button.bind(pos=self._update_unlock_button_bg, size=self._update_unlock_button_bg)
+        self.unlock_button.bind(on_press=self.unlock_locker)
+        button_section.add_widget(self.unlock_button)
+        
+        form_card.add_widget(button_section)
+        content_scroll.add_widget(form_card)
+        
+        # Remove fixed spacer to avoid pushing footer off-screen
+        
+        # FOOTER SECTION - BOTTOM positioned
+        footer_section = BoxLayout(orientation='vertical', size_hint_y=None, spacing=dp(8))
+        footer_section.bind(minimum_height=footer_section.setter('height'))
+        
+        # Security message - smaller and at bottom
+        security_text = Label(
+            text='[font=FontAwesome]\uf023[/font] [size=13sp][b]Bank-level security[/b] • Your data is encrypted and protected[/size]',
+            markup=True,
+            size_hint_y=None,
+            height=dp(22),
+            color=(0/255, 150/255, 0, 1),
+            halign='center',
+            valign='middle'
+        )
+        security_text.bind(size=security_text.setter('text_size'))
+        footer_section.add_widget(security_text)
+        
+        # Trust badges in horizontal layout - COMPACT
+        badges_container = BoxLayout(orientation='horizontal', size_hint_y=None)
+        badges_container.bind(minimum_height=badges_container.setter('height'))
+        badges_container.add_widget(Widget())  # Left spacer
+        
+        badges_layout = BoxLayout(orientation='horizontal', size_hint=(None, None), spacing=dp(25))
+        badges_layout.bind(minimum_height=badges_layout.setter('height'))
+        badges_layout.width = dp(220)
+        badges_layout.height = dp(30)
+        
+        # SSL badge - compact
+        ssl_badge = Label(
+            text='[font=FontAwesome]\uf084[/font]\n[size=11sp]SSL[/size]',
+            markup=True,
+            size_hint=(None, None),
+            size=(dp(45), dp(30)),
+            color=(0/255, 150/255, 0, 1),
+            halign='center',
+            valign='middle'
+        )
+        ssl_badge.bind(size=ssl_badge.setter('text_size'))
+        badges_layout.add_widget(ssl_badge)
+        
+        # Secure badge - compact
+        secure_badge = Label(
+            text='[font=FontAwesome]\uf132[/font]\n[size=11sp]SECURE[/size]',
+            markup=True,
+            size_hint=(None, None),
+            size=(dp(65), dp(30)),
+            color=(0/255, 150/255, 0, 1),
+            halign='center',
+            valign='middle'
+        )
+        secure_badge.bind(size=secure_badge.setter('text_size'))
+        badges_layout.add_widget(secure_badge)
+        
+        # Verified badge - compact
+        verified_badge = Label(
+            text='[font=FontAwesome]\uf00c[/font]\n[size=11sp]VERIFIED[/size]',
+            markup=True,
+            size_hint=(None, None),
+            size=(dp(65), dp(30)),
+            color=(0/255, 150/255, 0, 1),
+            halign='center',
+            valign='middle'
+        )
+        verified_badge.bind(size=verified_badge.setter('text_size'))
+        badges_layout.add_widget(verified_badge)
+        
+        badges_container.add_widget(badges_layout)
+        badges_container.add_widget(Widget())  # Right spacer
+        footer_section.add_widget(badges_container)
+        
+        content_scroll.add_widget(footer_section)
+        
+        # Flexible spacer at bottom to push content up (removes big white space above)
+        content_scroll.add_widget(Widget(size_hint_y=1))
+        
+        main_container.add_widget(content_scroll)
+        self.add_widget(main_container)
+        
+        # Set backward compatibility references for form functionality
+        self.contact_input = self.contact_field
+        self.pin_input = self.pin_field
+    
+    def create_functional_input(self, icon, placeholder, is_password=False, input_filter=None):
+        """Create a functional input field with proper sizing"""
+        # Container for the input
+        input_container = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(55))
+        input_container.spacing = dp(12)
+        input_container.padding = [dp(12), dp(8)]
+        
+        # Icon container
+        icon_container = BoxLayout(size_hint_x=None, width=dp(40))
+        icon_label = Label(
+            text=f'[font=FontAwesome]{icon}[/font]',
+            markup=True,
+            font_size='20sp',
+            color=(0/255, 77/255, 122/255, 1),
+            halign='center',
+            valign='middle'
+        )
+        icon_label.bind(size=icon_label.setter('text_size'))
+        icon_container.add_widget(icon_label)
+        
+        # Input field
+        text_input = TextInput(
+            hint_text=placeholder,
+            font_size='16sp',
             multiline=False,
-            password=True,
-            font_size='16sp',
-            size_hint_y=None,
-            height=dp(50),
-            background_color=(240/255, 242/255, 245/255, 1),  # Cinzento claro do sistema
-            foreground_color=(0/255, 77/255, 122/255, 1),  # Azul escuro do sistema,
-            input_filter='int'  # Only accepts numbers
+            password=is_password,
+            input_filter=input_filter,
+            background_color=(1, 1, 1, 1),
+            foreground_color=(0, 0, 0, 1),
+            cursor_color=(0/255, 77/255, 122/255, 1),
+            selection_color=(0/255, 77/255, 122/255, 0.3),
+            padding=[dp(12), dp(8), dp(12), dp(8)]
         )
-        pin_section.add_widget(self.pin_input)
         
-        self.content_area.add_widget(pin_section)
+        # Container background with border
+        with input_container.canvas.before:
+            Color(1, 1, 1, 1)  # White background
+            input_container.bg_rect = RoundedRectangle(
+                pos=input_container.pos, 
+                size=input_container.size, 
+                radius=[dp(8)]
+            )
+            Color(200/255, 200/255, 200/255, 1)  # Border color
+            input_container.border_rect = RoundedRectangle(
+                pos=input_container.pos, 
+                size=input_container.size, 
+                radius=[dp(8)]
+            )
         
-        # Spacer
-        self.content_area.add_widget(Widget(size_hint_y=None, height=dp(40)))
+        input_container.bind(pos=self._update_input_bg, size=self._update_input_bg)
         
-        # Button to unlock locker (using consistent design)
-        unlock_button = StyledButton('Unlock Locker', button_type='primary')
-        unlock_button.bind(on_press=self.unlock_locker)
-        self.content_area.add_widget(unlock_button)
+        # Focus change handler - YELLOW FOCUS!
+        def on_focus_change(instance, focus):
+            with input_container.canvas.before:
+                if focus:
+                    Color(1, 204/255, 0, 1)  # YELLOW border when focused
+                else:
+                    Color(200/255, 200/255, 200/255, 1)  # Gray border when not focused
+                input_container.border_rect = RoundedRectangle(
+                    pos=input_container.pos, 
+                    size=input_container.size, 
+                    radius=[dp(8)]
+                )
         
-        # Spacer
-        self.content_area.add_widget(Widget(size_hint_y=None, height=dp(20)))
+        text_input.bind(focus=on_focus_change)
         
-        # Instruction
-        instruction = Label(
-            text='Enter your contact information and 4-digit PIN to access your locker.',
-            font_size='16sp',
-            size_hint_y=None,
-            height=dp(40),
-            color=(0.4, 0.4, 0.4, 1),
-            halign='center'
-        )
-        instruction.bind(size=lambda instance, value: setattr(instruction, 'text_size', (instruction.width, None)))
-        self.content_area.add_widget(instruction)
+        input_container.add_widget(icon_container)
+        input_container.add_widget(text_input)
         
-        # Very small flexible spacer at the end (5% of height)
-        self.content_area.add_widget(Widget(size_hint_y=0.05))
+        # Store the actual TextInput widget as an attribute
+        input_container.text_input = text_input
+        
+        return input_container
+    
+    def _update_main_bg(self, instance, value):
+        """Update main background position"""
+        if hasattr(instance, 'bg_rect'):
+            instance.bg_rect.pos = instance.pos
+            instance.bg_rect.size = instance.size
+    
+    def _update_header_bg(self, instance, value):
+        """Update header background position"""
+        if hasattr(instance, 'bg_rect'):
+            instance.bg_rect.pos = instance.pos
+            instance.bg_rect.size = instance.size
+    
+    def _update_back_button_bg(self, instance, value):
+        """Update back button background to keep yellow"""
+        if hasattr(instance, 'bg_rect'):
+            instance.bg_rect.pos = instance.pos
+            instance.bg_rect.size = instance.size
+    
+    def _update_unlock_button_bg(self, instance, value):
+        """Update unlock button background to keep yellow"""
+        if hasattr(instance, 'bg_rect'):
+            instance.bg_rect.pos = instance.pos
+            instance.bg_rect.size = instance.size
+    
+    def _update_input_bg(self, instance, value):
+        """Update input background position"""
+        if hasattr(instance, 'bg_rect'):
+            instance.bg_rect.pos = instance.pos
+            instance.bg_rect.size = instance.size
+        if hasattr(instance, 'border_rect'):
+            instance.border_rect.pos = instance.pos
+            instance.border_rect.size = instance.size
+    
+    def go_back(self, instance):
+        """Go back to home screen"""
+        print("Going back from unlock_locker")
+        if self.manager:
+            self.manager.current = 'home'
+    
+    def reset_form(self, instance):
+        """Reset form fields"""
+        print("Executing reset_form - clearing fields")
+        if hasattr(self, 'contact_field') and hasattr(self.contact_field, 'text_input'):
+            self.contact_field.text_input.text = ""
+        if hasattr(self, 'pin_field') and hasattr(self.pin_field, 'text_input'):
+            self.pin_field.text_input.text = ""
     
     def update_translations(self):
-        """Update all translatable text elements"""
-        # Update header elements
-        if hasattr(self, 'title_label'):
-            self.title_label.text = f'[b]{translator.get_text("unlock_locker_title")}[/b]'
-        if hasattr(self, 'back_button'):
-            self.back_button.text = f'[b]< {translator.get_text("back_button")}[/b]'
-        
-        # Reset the form to ensure clean translation update
-        self.reset_form(None)
+        """Update translations (placeholder)"""
+        pass
 
     def unlock_locker(self, instance):
         """Function to unlock locker using database"""
-        contact = self.contact_input.text.strip()
-        pin = self.pin_input.text.strip()
+        # Get text from the functional input fields
+        contact = self.contact_field.text_input.text.strip() if hasattr(self.contact_field, 'text_input') else ""
+        pin = self.pin_field.text_input.text.strip() if hasattr(self.pin_field, 'text_input') else ""
         
         if not contact or not pin:
             print("Error: Contact and PIN are required")
-            self.show_error_message(translator.get_text("error_contact_pin_required"))
+            self.show_error_message("Contact and PIN are required")
             return
         
         if not pin.isdigit() or len(pin) != 4:
             print("Error: PIN must have 4 digits")
-            self.show_error_message(translator.get_text("error_pin_format"))
+            self.show_error_message("PIN must be 4 digits")
             return
         
         if self.db:
@@ -549,329 +976,33 @@ class UnlockLockerScreen(BaseScreen):
             locker_number = self.db.unlock_locker(contact, pin)
             
             if locker_number:
-                print(f"Database unlock successful for locker {locker_number}")
-                
-                # Return the locker to available status (complete the cycle)
-                if self.db.return_locker(locker_number):
-                    print(f"Locker {locker_number} returned to available status - cycle complete")
-                
-                # Send 20ms pulse to unlock locker physically
+                print(f"Success: Locker {locker_number} unlocked for {contact}")
+                # Use GPIO controller to physically unlock
                 if self.gpio_controller:
-                    unlock_success = self.gpio_controller.pulse_locker_unlock(locker_number, 0.02)
-                    if unlock_success:
-                        print(f"Locker {locker_number} unlocked with 20ms pulse!")
-                        self.show_unlock_success_message(locker_number)
-                        
-                        # Schedule automatic locking after 10 seconds (but it remains available)
-                        Clock.schedule_once(lambda dt: self.auto_lock_and_return(locker_number), 10.0)
-                        
-                        # Refresh locker status in Find Lockers screen if it exists
-                        self.refresh_find_lockers_screen()
-                        
+                    success = self.gpio_controller.pulse_locker_unlock(locker_number)
+                    if success:
+                        self.show_success_message(f"Locker {locker_number} is now open!")
                     else:
-                        print("Error sending pulse to unlock locker physically")
-                        self.show_error_message(translator.get_text("error_unlock_physical"))
+                        self.show_error_message("Locker unlocked in system but physical unlock failed")
                 else:
-                    print(f"Locker {locker_number} unlocked (simulation mode)")
-                    self.show_unlock_success_message(locker_number)
-                    
-                    # Schedule automatic locking after 10 seconds (but it remains available)
-                    Clock.schedule_once(lambda dt: self.auto_lock_and_return(locker_number), 10.0)
-                    
-                    # Refresh locker status in Find Lockers screen if it exists
-                    self.refresh_find_lockers_screen()
-                    
+                    self.show_success_message(f"Locker {locker_number} unlocked successfully!")
+                
+                # Clear form after successful unlock
+                self.reset_form(None)
             else:
-                print("Incorrect contact or PIN, or no active booking")
-                self.show_error_message(translator.get_text("error_incorrect_credentials"))
+                print(f"Error: No booking found for {contact} with PIN {pin}")
+                self.show_error_message("Invalid contact information or PIN. Please check your booking details.")
         else:
-            print("Database not available")
-            self.show_error_message(translator.get_text("error_system_unavailable"))
+            print("Error: Database not available")
+            self.show_error_message("System temporarily unavailable. Please try again later.")
     
-    def refresh_find_lockers_screen(self):
-        """Refresh the Find Lockers screen status after unlock"""
-        try:
-            # Find the Find Lockers screen in the manager
-            for screen in self.manager.screens:
-                if hasattr(screen, 'refresh_locker_status') and screen.name == 'find_lockers':
-                    print("Refreshing Find Lockers screen status")
-                    screen.refresh_locker_status()
-                    break
-        except Exception as e:
-            print(f"Error refreshing Find Lockers screen: {e}")
+    def show_error_message(self, message):
+        """Show error message to user"""
+        print(f"Error message: {message}")
+        # Here you could implement a popup or toast message
     
-    def auto_lock_locker(self, locker_number):
-        """Automatically lock the locker but keep it occupied until manually unlocked"""
-        if self.gpio_controller:
-            self.gpio_controller.lock_locker(locker_number)
-            print(f'Locker {locker_number} automatically locked')
-            
-            # Don't auto-return to available - user must unlock via "unlock locker" section
-            # The locker should remain "occupied" (red) until explicitly unlocked
-            if self.db:
-                try:
-                    # Log the auto-lock but don't change DB status
-                    self.db.log_action(locker_number, 'AUTO_LOCK', 'Locker automatically locked, remains occupied until manual unlock')
-                    print(f'Locker {locker_number} auto-locked but remains occupied - must be unlocked manually')
-                except Exception as e:
-                    print(f"Error logging auto-lock: {e}")
-            
-            # Refresh Find Lockers screen to show updated status
-            self.refresh_find_lockers_screen()
-    
-    def auto_lock_and_return(self, locker_number):
-        """Automatically lock the locker after unlock via PIN - cycle complete"""
-        if self.gpio_controller:
-            self.gpio_controller.lock_locker(locker_number)
-            print(f'Locker {locker_number} automatically locked after PIN unlock - now available')
-            
-            # This locker was already returned to available status in unlock_locker method
-            # Just log the completion
-            if self.db:
-                try:
-                    self.db.log_action(locker_number, 'CYCLE_COMPLETE', 'Unlocked via PIN, auto-locked, cycle complete - now available')
-                except Exception as e:
-                    print(f"Error logging cycle completion: {e}")
-            
-            # Refresh Find Lockers screen to show updated status
-            self.refresh_find_lockers_screen()
-    
-    def find_locker_for_contact(self, contact, pin):
-        """Simulate finding locker associated with contact/PIN"""
-        # This would normally be a database query
-        # For now, return a fixed locker for testing
-        return '001'  # Simulate that locker 001 belongs to this user
-    
-    def show_unlock_success_message(self, locker_number):
-        """Show friendly success message for unlock"""
-        # Clear content area
-        self.content_area.clear_widgets()
-        
-        # Top spacer
-        top_spacer = BoxLayout(size_hint_y=None, height=dp(30))
-        self.content_area.add_widget(top_spacer)
-        
-        # Big success checkmark icon (using simple symbol that Kivy renders well)
-        success_icon = Label(
-            text='[color=2ECC40][b]✓[/b][/color]',
-            markup=True,
-            font_size='150sp',
-            size_hint_y=None,
-            height=dp(150),
-            halign='center'
-        )
-        success_icon.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
-        self.content_area.add_widget(success_icon)
-        
-        # Success message
-        success_title = Label(
-            text=f'[color=2ECC40][b]{translator.get_text("locker_unlocked")}[/b][/color]',
-            markup=True,
-            font_size='28sp',
-            size_hint_y=None,
-            height=dp(70),
-            halign='center'
-        )
-        success_title.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
-        self.content_area.add_widget(success_title)
-        
-        # Locker number display with colorful background
-        locker_info = Label(
-            text=f'[color=004D7A][b]Locker #{locker_number}[/b][/color]',
-            markup=True,
-            font_size='42sp',
-            size_hint_y=None,
-            height=dp(80),
-            halign='center'
-        )
-        locker_info.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
-        self.content_area.add_widget(locker_info)
-        
-        # Spacer
-        spacer1 = BoxLayout(size_hint_y=None, height=dp(40))
-        self.content_area.add_widget(spacer1)
-        
-        # Thank you message
-        thank_you = Label(
-            text=f'[color=FF6B35][b]{translator.get_text("thank_you_message")}[/b][/color]',
-            markup=True,
-            font_size='26sp',
-            size_hint_y=None,
-            height=dp(60),
-            halign='center'
-        )
-        thank_you.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
-        self.content_area.add_widget(thank_you)
-        
-        # Come back soon message
-        come_back = Label(
-            text=f'[color=7209B7][b]{translator.get_text("come_back_soon")}[/b][/color]',
-            markup=True,
-            font_size='24sp',
-            size_hint_y=None,
-            height=dp(60),
-            halign='center'
-        )
-        come_back.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
-        self.content_area.add_widget(come_back)
-        
-        # Spacer
-        spacer2 = BoxLayout(size_hint_y=None, height=dp(40))
-        self.content_area.add_widget(spacer2)
-        
-        # Back button
-        back_button = StyledButton(translator.get_text("back_to_home"), button_type='primary')
-        back_button.bind(on_press=lambda x: setattr(self.manager, 'current', 'home'))
-        self.content_area.add_widget(back_button)
-        
-        # Flexible spacer
-        final_spacer = BoxLayout()
-        self.content_area.add_widget(final_spacer)
-    
-    def show_error_message(self, error_text):
-        """Show error message"""
-        # Clear content area
-        self.content_area.clear_widgets()
-        
-        # Error message
-        error_title = Label(
-            text=f'[color=FF4136][b]❌ {translator.get_text("error_title")}[/b][/color]',
-            markup=True,
-            font_size='32sp',
-            size_hint_y=None,
-            height=dp(80),
-            halign='center'
-        )
-        error_title.bind(size=lambda instance, value: setattr(error_title, 'text_size', (error_title.width, None)))
-        self.content_area.add_widget(error_title)
-        
-        # Spacer
-        self.content_area.add_widget(Widget(size_hint_y=None, height=dp(30)))
-        
-        # Error text
-        error_label = Label(
-            text=error_text,
-            font_size='20sp',
-            halign='center',
-            valign='middle',
-            size_hint_y=None,
-            height=dp(100),
-            color=(255/255, 65/255, 54/255, 1)  # Red
-        )
-        error_label.bind(size=lambda instance, value: setattr(error_label, 'text_size', (error_label.width, None)))
-        self.content_area.add_widget(error_label)
-        
-        # Spacer
-        self.content_area.add_widget(Widget(size_hint_y=None, height=dp(30)))
-        
-        # Retry button
-        retry_button = StyledButton(translator.get_text("try_again_button"), button_type='secondary')
-        retry_button.bind(on_press=self.reset_form)
-        self.content_area.add_widget(retry_button)
-        
-        # Flexible spacer
-        self.content_area.add_widget(Widget())
-    
-    def reset_form(self, instance):
-        """Reset the form for new attempt"""
-        print("Executing reset_form - clearing and rebuilding interface")
-        # Clear content area and rebuild the original form
-        self.content_area.clear_widgets()
-        
-        # Flexible spacer that takes 80% of available height
-        self.content_area.add_widget(Widget(size_hint_y=0.8))
-        
-        # Contact section
-        contact_section = BoxLayout(orientation='vertical', spacing=dp(10), size_hint_y=None)
-        contact_section.bind(minimum_height=contact_section.setter('height'))
-        
-        # "Contact:" label
-        contact_title = Label(
-            text=translator.get_text("contact_label"),
-            font_size='20sp',
-            bold=True,
-            size_hint_y=None,
-            height=dp(30),
-            color=(0/255, 77/255, 122/255, 1),
-            halign='left'
-        )
-        contact_title.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
-        contact_section.add_widget(contact_title)
-        
-        # Contact input
-        self.contact_input = TextInput(
-            hint_text='example@email.com or +351 123 456 789',
-            multiline=False,
-            font_size='16sp',
-            size_hint_y=None,
-            height=dp(50),
-            background_color=(240/255, 242/255, 245/255, 1),  # Cinzento claro do sistema
-            foreground_color=(0/255, 77/255, 122/255, 1),  # Azul escuro do sistema
-        )
-        contact_section.add_widget(self.contact_input)
-        
-        self.content_area.add_widget(contact_section)
-        
-        # Spacer
-        self.content_area.add_widget(Widget(size_hint_y=None, height=dp(30)))
-        
-        # PIN section
-        pin_section = BoxLayout(orientation='vertical', spacing=dp(10), size_hint_y=None)
-        pin_section.bind(minimum_height=pin_section.setter('height'))
-        
-        # "PIN:" label
-        pin_title = Label(
-            text='PIN (4 digits):',
-            font_size='20sp',
-            bold=True,
-            size_hint_y=None,
-            height=dp(30),
-            color=(0/255, 77/255, 122/255, 1),
-            halign='left'
-        )
-        pin_title.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
-        pin_section.add_widget(pin_title)
-        
-        # PIN input
-        self.pin_input = TextInput(
-            hint_text='Enter your 4-digit PIN',
-            multiline=False,
-            password=True,
-            font_size='16sp',
-            size_hint_y=None,
-            height=dp(50),
-            background_color=(240/255, 242/255, 245/255, 1),  # Cinzento claro do sistema
-            foreground_color=(0/255, 77/255, 122/255, 1),  # Azul escuro do sistema,
-            input_filter='int'  # Only accepts numbers
-        )
-        pin_section.add_widget(self.pin_input)
-        
-        self.content_area.add_widget(pin_section)
-        
-        # Spacer
-        self.content_area.add_widget(Widget(size_hint_y=None, height=dp(40)))
-        
-        # Button to unlock locker (using consistent design)
-        unlock_button = StyledButton('Unlock Locker', button_type='primary')
-        unlock_button.bind(on_press=self.unlock_locker)
-        self.content_area.add_widget(unlock_button)
-        
-        # Spacer
-        self.content_area.add_widget(Widget(size_hint_y=None, height=dp(20)))
-        
-        # Instruction
-        instruction = Label(
-            text='Enter your contact information and 4-digit PIN to access your locker.',
-            font_size='16sp',
-            size_hint_y=None,
-            height=dp(40),
-            color=(0.4, 0.4, 0.4, 1),
-            halign='center'
-        )
-        instruction.bind(size=lambda instance, value: setattr(instruction, 'text_size', (instruction.width, None)))
-        self.content_area.add_widget(instruction)
-        
-        # Very small flexible spacer at the end (5% of height)
-        self.content_area.add_widget(Widget(size_hint_y=0.05))
-
+    def show_success_message(self, message):
+        """Show success message to user"""
+        print(f"Success message: {message}")
+        # Here you could implement a popup or toast message
 

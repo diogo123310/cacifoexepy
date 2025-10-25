@@ -262,7 +262,7 @@ class HowItWorksScreen(Screen):
         button_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(50))
         button_layout.add_widget(Widget())  # Spacer esquerdo
         
-        self.back_button = StyledButton(translator.get_text("back_button"), button_type='secondary', size_hint_x=None, width=dp(200))
+        self.back_button = StyledButton(translator.get_text("back_button"), button_type='primary', size_hint_x=None, width=dp(200))
         self.back_button.bind(on_press=self.go_back)
         button_layout.add_widget(self.back_button)
         
